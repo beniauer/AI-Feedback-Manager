@@ -23,7 +23,7 @@ import {
   formatDate,
   updateFeedbackStatus,
   markFeedbackAsReplied,
-  markFeedbackAsSolved,
+  toggleFeedbackSolvedStatus,
 } from '@/utils/feedbackUtils';
 
 interface FeedbackDetailProps {
@@ -40,7 +40,7 @@ const FeedbackDetail = ({ feedback }: FeedbackDetailProps) => {
   };
 
   const handleMarkAsSolved = async () => {
-    await markFeedbackAsSolved(feedback.UUID_Number);
+    await toggleFeedbackSolvedStatus(feedback.UUID_Number, !!feedback.Solved);
   };
 
   return (
@@ -130,6 +130,7 @@ const FeedbackDetail = ({ feedback }: FeedbackDetailProps) => {
           className="flex-1 bg-[#ff0105] hover:bg-[#dd0104]" 
           onClick={handleMarkAsSolved}
           disabled={feedback.Solved}
+          type="button"
         >
           <CheckCircle className="h-4 w-4 mr-2" />
           Mark as Solved
