@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -44,6 +43,10 @@ const FeedbackTable = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   
   const { data: feedbackData, isLoading, error, refetch } = useFeedbackData();
+
+  useEffect(() => {
+    console.log('FeedbackTable rendered with data:', feedbackData);
+  }, [feedbackData]);
 
   const handleSort = (field: keyof FeedbackItem) => {
     if (sortField === field) {
@@ -264,6 +267,9 @@ const FeedbackTable = () => {
         <CardContent className="py-10 text-center">
           <p className="text-red-500 mb-2">Error loading feedback data</p>
           <p className="text-sm text-muted-foreground">Please check your connection and try again</p>
+          <Button onClick={() => refetch()} className="mt-4">
+            Retry
+          </Button>
         </CardContent>
       </Card>
     );
@@ -278,6 +284,9 @@ const FeedbackTable = () => {
         <CardContent className="py-10 text-center">
           <p className="text-lg mb-2">No feedback data available</p>
           <p className="text-sm text-muted-foreground">Check your Supabase connection or add some data to get started</p>
+          <Button onClick={() => refetch()} className="mt-4">
+            Refresh Data
+          </Button>
         </CardContent>
       </Card>
     );

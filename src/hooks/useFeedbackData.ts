@@ -16,8 +16,27 @@ export function useFeedbackData() {
         throw new Error('Failed to fetch feedback data');
       }
       
-      return data || [];
-    }
+      // Map the database column names to our frontend model
+      const mappedData = data?.map(item => ({
+        UUID_Number: item['UUID_Number'],
+        Feedback_Title: item['Feedback Title'],
+        Product_Name: item['Product Name'],
+        Sales_Sender: item['Sales_Sender'] || null,
+        Market: item['Market'] || null,
+        Summary: item['Summary'],
+        Type: item['Type'],
+        Full_Message: item['Full Message'],
+        Tags: item['Tags'],
+        Status: item['Status'] || 'Unread',
+        Replied: item['Replied'] || false,
+        Solved: item['Solved'] || false,
+        Creation_Date: item['Creation_Date'] || new Date().toISOString()
+      })) || [];
+
+      console.log('Fetched feedback data:', mappedData);
+      return mappedData;
+    },
+    refetchOnWindowFocus: false
   });
 }
 
