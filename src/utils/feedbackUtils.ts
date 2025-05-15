@@ -1,3 +1,4 @@
+
 import { FeedbackItem, FeedbackStatus } from '@/types/feedback';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -74,15 +75,15 @@ export const updateFeedbackStatus = async (id: number, status: string) => {
     
     if (error) throw error;
     
-    toast({
-      title: "Status Updated",
+    // Fix: Use the proper toast API format
+    toast("Status Updated", {
       description: `Feedback status changed to ${status}`,
     });
     return true;
   } catch (error) {
     console.error('Error updating status:', error);
-    toast({
-      title: "Update Failed",
+    // Fix: Use the proper toast API format
+    toast("Update Failed", {
       description: "Failed to update feedback status",
       variant: "destructive",
     });
@@ -99,15 +100,15 @@ export const markFeedbackAsReplied = async (id: number) => {
     
     if (error) throw error;
     
-    toast({
-      title: "Marked as Replied",
+    // Fix: Use the proper toast API format
+    toast("Marked as Replied", {
       description: "Feedback has been marked as replied",
     });
     return true;
   } catch (error) {
     console.error('Error updating replied status:', error);
-    toast({
-      title: "Update Failed",
+    // Fix: Use the proper toast API format
+    toast("Update Failed", {
       description: "Failed to mark feedback as replied",
       variant: "destructive",
     });
@@ -124,19 +125,26 @@ export const markFeedbackAsSolved = async (id: number, solved: boolean = true) =
     
     if (error) throw error;
     
-    toast.success(`Feedback marked as ${solved ? 'solved' : 'unsolved'}`);
+    // Fix: Use the correct Sonner toast API
+    toast(solved ? 'Feedback Solved' : 'Feedback Unsolved', {
+      description: `Feedback marked as ${solved ? 'solved' : 'unsolved'}`,
+    });
     return true;
   } catch (error) {
     console.error('Error updating solved status:', error);
-    toast.error('Failed to update feedback status');
+    // Fix: Use the correct Sonner toast API
+    toast('Update Failed', {
+      description: 'Failed to update feedback status',
+      variant: 'destructive',
+    });
     return false;
   }
 };
 
 export const exportFeedbackAsCSV = (feedbackData: FeedbackItem[] | undefined) => {
   if (!feedbackData || feedbackData.length === 0) {
-    toast({
-      title: "Export Error",
+    // Fix: Use the proper toast API format
+    toast("Export Error", {
       description: "No data available to export",
       variant: "destructive",
     });
@@ -165,14 +173,14 @@ export const exportFeedbackAsCSV = (feedbackData: FeedbackItem[] | undefined) =>
     // Clean up
     URL.revokeObjectURL(url);
     
-    toast({
-      title: "Export Successful",
+    // Fix: Use the proper toast API format
+    toast("Export Successful", {
       description: "Your data has been exported as CSV",
     });
   } catch (error) {
     console.error('Error exporting CSV:', error);
-    toast({
-      title: "Export Error",
+    // Fix: Use the proper toast API format
+    toast("Export Error", {
       description: "Failed to export data",
       variant: "destructive",
     });
