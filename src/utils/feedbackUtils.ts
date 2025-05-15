@@ -75,18 +75,13 @@ export const updateFeedbackStatus = async (id: number, status: string) => {
     
     if (error) throw error;
     
-    // Fix: Use the proper toast API format
-    toast("Status Updated", {
-      description: `Feedback status changed to ${status}`,
-    });
+    // Use the correct Sonner toast API format
+    toast.success(`Feedback status changed to ${status}`);
     return true;
   } catch (error) {
     console.error('Error updating status:', error);
-    // Fix: Use the proper toast API format
-    toast("Update Failed", {
-      description: "Failed to update feedback status",
-      variant: "destructive",
-    });
+    // Use the correct Sonner toast API format
+    toast.error("Failed to update feedback status");
     return false;
   }
 };
@@ -100,18 +95,13 @@ export const markFeedbackAsReplied = async (id: number) => {
     
     if (error) throw error;
     
-    // Fix: Use the proper toast API format
-    toast("Marked as Replied", {
-      description: "Feedback has been marked as replied",
-    });
+    // Use the correct Sonner toast API format
+    toast.success("Feedback has been marked as replied");
     return true;
   } catch (error) {
     console.error('Error updating replied status:', error);
-    // Fix: Use the proper toast API format
-    toast("Update Failed", {
-      description: "Failed to mark feedback as replied",
-      variant: "destructive",
-    });
+    // Use the correct Sonner toast API format
+    toast.error("Failed to mark feedback as replied");
     return false;
   }
 };
@@ -125,29 +115,21 @@ export const markFeedbackAsSolved = async (id: number, solved: boolean = true) =
     
     if (error) throw error;
     
-    // Fix: Use the correct Sonner toast API
-    toast(solved ? 'Feedback Solved' : 'Feedback Unsolved', {
-      description: `Feedback marked as ${solved ? 'solved' : 'unsolved'}`,
-    });
+    // Use the correct Sonner toast API format
+    toast.success(`Feedback marked as ${solved ? 'solved' : 'unsolved'}`);
     return true;
   } catch (error) {
     console.error('Error updating solved status:', error);
-    // Fix: Use the correct Sonner toast API
-    toast('Update Failed', {
-      description: 'Failed to update feedback status',
-      variant: 'destructive',
-    });
+    // Use the correct Sonner toast API format
+    toast.error('Failed to update feedback status');
     return false;
   }
 };
 
 export const exportFeedbackAsCSV = (feedbackData: FeedbackItem[] | undefined) => {
   if (!feedbackData || feedbackData.length === 0) {
-    // Fix: Use the proper toast API format
-    toast("Export Error", {
-      description: "No data available to export",
-      variant: "destructive",
-    });
+    // Use the correct Sonner toast API format
+    toast.error("No data available to export");
     return;
   }
 
@@ -173,16 +155,11 @@ export const exportFeedbackAsCSV = (feedbackData: FeedbackItem[] | undefined) =>
     // Clean up
     URL.revokeObjectURL(url);
     
-    // Fix: Use the proper toast API format
-    toast("Export Successful", {
-      description: "Your data has been exported as CSV",
-    });
+    // Use the correct Sonner toast API format
+    toast.success("Your data has been exported as CSV");
   } catch (error) {
     console.error('Error exporting CSV:', error);
-    // Fix: Use the proper toast API format
-    toast("Export Error", {
-      description: "Failed to export data",
-      variant: "destructive",
-    });
+    // Use the correct Sonner toast API format
+    toast.error("Failed to export data");
   }
 };
