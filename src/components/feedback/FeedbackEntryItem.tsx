@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, ExternalLink, CheckSquare, Square } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface FeedbackEntryItemProps {
   feedback: FeedbackItem;
@@ -37,13 +38,26 @@ const FeedbackEntryItem = ({
   };
 
   const handleSolvedToggle = async () => {
-    // Toggle the current solved state
-    const newSolvedState = !feedback.Solved;
-    const success = await markFeedbackAsSolved(feedback.UUID_Number, newSolvedState);
-    
-    if (success) {
-      // Invalidate the feedback query to refresh data
-      queryClient.invalidateQueries({ queryKey: ['feedback'] });
+    try {
+      // Toggle the current solved state
+      const newSolvedState = !feedback.Solved;
+      
+      // Show loading toast
+      toast.loading(newSolvedState ? 'Marking as solved...' : 'Removing solved status...');
+      
+      // Call the API to update the solved status
+      const success = await markFeedbackAsSolved(feedback.UUID_Number, newSolvedState);
+      
+      if (success) {
+        // Invalidate the feedback query to refresh data
+        queryClient.invalidateQueries({ queryKey: ['feedback'] });
+        toast.success(newSolvedState ? 'Marked as solved!' : 'Removed solved status');
+      } else {
+        toast.error('Failed to update status');
+      }
+    } catch (error) {
+      console.error('Error toggling solved status:', error);
+      toast.error('Something went wrong');
     }
   };
   
@@ -68,19 +82,25 @@ const FeedbackEntryItem = ({
           </div>
           <div className="flex items-center gap-2">
             <Button 
-              variant="ghost" 
+              variant={feedback.Solved ? "outline" : "destructive"}
               size="sm" 
-              className="flex items-center gap-1 text-sm"
+              className={cn(
+                "flex items-center gap-1",
+                feedback.Solved ? "border-green-500 text-green-600" : ""
+              )}
               onClick={handleSolvedToggle}
             >
               {feedback.Solved ? (
-                <CheckSquare className="h-4 w-4 text-green-600" />
+                <>
+                  <CheckSquare className="h-4 w-4" />
+                  <span>Solved</span>
+                </>
               ) : (
-                <Square className="h-4 w-4" />
+                <>
+                  <Square className="h-4 w-4" />
+                  <span>Mark as solved</span>
+                </>
               )}
-              <span className="text-muted-foreground">
-                {feedback.Solved ? 'Solved' : 'Mark as solved'}
-              </span>
             </Button>
             <Button variant="ghost" size="sm" onClick={onToggleExpand}>
               {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}

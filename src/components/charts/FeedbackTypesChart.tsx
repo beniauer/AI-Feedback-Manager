@@ -60,6 +60,35 @@ const FeedbackTypesChart = () => {
     return COLOR_MAP[normalizedType] || DEFAULT_COLORS[chartData.findIndex(item => item.name.toLowerCase() === normalizedType) % DEFAULT_COLORS.length];
   };
 
+  // Custom label component that uses white text for better visibility on colored backgrounds
+  const renderCustomizedLabel = ({ name, percent, x, y, midAngle }: any) => {
+    const RADIAN = Math.PI / 180;
+    const radius = 80;
+    const innerRadius = 40;
+    const outerRadius = 80;
+    const cx = x;
+    const cy = y;
+    
+    // Calculate position for the label
+    const sin = Math.sin(-RADIAN * midAngle);
+    const cos = Math.cos(-RADIAN * midAngle);
+    const mx = cx + (outerRadius + 30) * cos;
+    const my = cy + (outerRadius + 30) * sin;
+    
+    return (
+      <text 
+        x={mx} 
+        y={my} 
+        fill="white" 
+        textAnchor={mx > cx ? 'start' : 'end'} 
+        dominantBaseline="central"
+        style={{ fontSize: '12px', fontWeight: 'bold', textShadow: '1px 1px 1px rgba(0,0,0,0.5)' }}
+      >
+        {`${name}: ${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <RechartsPieChart>
@@ -71,7 +100,7 @@ const FeedbackTypesChart = () => {
           outerRadius={80}
           fill="#8884d8"
           dataKey="value"
-          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+          label={renderCustomizedLabel}
         >
           {chartData.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={getColorForType(entry.name)} />

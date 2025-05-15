@@ -112,11 +112,9 @@ export const markFeedbackAsSolved = async (id: number, solved: boolean = true) =
     
     if (error) throw error;
     
-    toast.success(`Feedback marked as ${solved ? 'solved' : 'unsolved'}`);
     return true;
   } catch (error) {
     console.error('Error updating solved status:', error);
-    toast.error('Failed to update feedback status');
     return false;
   }
 };
