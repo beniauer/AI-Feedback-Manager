@@ -31,20 +31,21 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowUp, ArrowDown, Download, Loader2 } from 'lucide-react';
+import { ArrowUp, ArrowDown, Download, Loader2, MessageCircle, CheckCircle } from 'lucide-react';
 import { useFeedbackData } from '@/hooks/useFeedbackData';
 import { FeedbackItem } from '@/types/feedback';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const FeedbackTable = () => {
-  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<keyof FeedbackItem | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackItem | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   
-  const { data: feedbackData, isLoading, error } = useFeedbackData();
+  const { data: feedbackData, isLoading, error, refetch } = useFeedbackData();
 
-  const handleSort = (field: string) => {
+  const handleSort = (field: keyof FeedbackItem) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -59,8 +60,8 @@ const FeedbackTable = () => {
     return [...feedbackData].sort((a, b) => {
       if (!sortField) return 0;
       
-      const aValue = a[sortField as keyof FeedbackItem];
-      const bValue = b[sortField as keyof FeedbackItem];
+      const aValue = a[sortField];
+      const bValue = b[sortField];
       
       if (aValue === null || aValue === undefined) return sortDirection === 'asc' ? -1 : 1;
       if (bValue === null || bValue === undefined) return sortDirection === 'asc' ? 1 : -1;
@@ -74,38 +75,113 @@ const FeedbackTable = () => {
   const handleRowClick = (feedback: FeedbackItem) => {
     setSelectedFeedback(feedback);
     setIsSheetOpen(true);
+    
+    // Mark as read if unread
+    if (feedback.Status === 'Unread') {
+      updateFeedbackStatus(feedback.UUID_Number, 'Read');
+    }
   };
 
-  const handleStatusChange = (value: string) => {
-    if (selectedFeedback) {
+  const updateFeedbackStatus = async (id: number, status: string) => {
+    try {
+      const { error } = await supabase
+        .from('SFS Jun PM Feedback')
+        .update({ Status: status })
+        .eq('UUID_Number', id);
+      
+      if (error) throw error;
+      
+      refetch();
+      
       toast({
         title: "Status Updated",
-        description: `Feedback status changed to ${value}`,
+        description: `Feedback status changed to ${status}`,
       });
-      // In a real app, we would update the status in the database
-      // This would require setting up an RLS policy for updates in Supabase
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update feedback status",
+        variant: "destructive",
+      });
     }
   };
 
-  const getPriorityColor = (priority: string = '') => {
-    switch (priority?.toLowerCase()) {
-      case 'high': return 'bg-red-100 text-red-800 hover:bg-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
-      case 'low': return 'bg-green-100 text-green-800 hover:bg-green-200';
-      default: return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+  const handleMarkAsReplied = async () => {
+    if (!selectedFeedback) return;
+    
+    try {
+      const { error } = await supabase
+        .from('SFS Jun PM Feedback')
+        .update({ Replied: true, Status: 'Replied' })
+        .eq('UUID_Number', selectedFeedback.UUID_Number);
+      
+      if (error) throw error;
+      
+      refetch();
+      
+      toast({
+        title: "Marked as Replied",
+        description: "Feedback has been marked as replied",
+      });
+    } catch (error) {
+      console.error('Error updating replied status:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to mark feedback as replied",
+        variant: "destructive",
+      });
     }
   };
 
-  const getStatusColor = (status: string = '') => {
+  const handleMarkAsSolved = async () => {
+    if (!selectedFeedback) return;
+    
+    try {
+      const { error } = await supabase
+        .from('SFS Jun PM Feedback')
+        .update({ Solved: true, Status: 'Solved' })
+        .eq('UUID_Number', selectedFeedback.UUID_Number);
+      
+      if (error) throw error;
+      
+      refetch();
+      
+      toast({
+        title: "Marked as Solved",
+        description: "Feedback has been marked as solved",
+      });
+    } catch (error) {
+      console.error('Error updating solved status:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to mark feedback as solved",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getStatusColor = (status?: string) => {
     switch (status?.toLowerCase()) {
-      case 'inbox': return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-      case 'analyse': return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
-      case 'abgeschlossen': return 'bg-green-100 text-green-800 hover:bg-green-200';
-      default: return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+      case 'unread': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'read': return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'replied': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'solved': return 'bg-green-100 text-green-800 border-green-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const formatDate = (dateString: string | undefined) => {
+  const getTypeColor = (type?: string) => {
+    switch (type?.toLowerCase()) {
+      case 'bug': return 'bg-red-100 text-red-800 border-red-200';
+      case 'feature request': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'question': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'feedback': return 'bg-purple-100 text-purple-800 border-purple-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     try {
       const date = new Date(dateString);
@@ -115,7 +191,7 @@ const FeedbackTable = () => {
         day: 'numeric',
       });
     } catch (e) {
-      return dateString; // If parsing fails, return the original string
+      return dateString;
     }
   };
 
@@ -169,10 +245,10 @@ const FeedbackTable = () => {
     return (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-medium">Feedback Details</CardTitle>
+          <CardTitle className="text-lg font-medium">Feedback List</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-10">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#ff0105]" />
           <span className="ml-2 text-lg text-muted-foreground">Loading data...</span>
         </CardContent>
       </Card>
@@ -183,7 +259,7 @@ const FeedbackTable = () => {
     return (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-medium">Feedback Details</CardTitle>
+          <CardTitle className="text-lg font-medium">Feedback List</CardTitle>
         </CardHeader>
         <CardContent className="py-10 text-center">
           <p className="text-red-500 mb-2">Error loading feedback data</p>
@@ -197,7 +273,7 @@ const FeedbackTable = () => {
     return (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-medium">Feedback Details</CardTitle>
+          <CardTitle className="text-lg font-medium">Feedback List</CardTitle>
         </CardHeader>
         <CardContent className="py-10 text-center">
           <p className="text-lg mb-2">No feedback data available</p>
@@ -211,7 +287,7 @@ const FeedbackTable = () => {
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-medium">Feedback Details</CardTitle>
+          <CardTitle className="text-lg font-medium">Feedback List</CardTitle>
           <Button variant="outline" size="sm" className="h-8" onClick={handleExportCSV}>
             <Download className="h-4 w-4 mr-2" />
             Export CSV
@@ -224,10 +300,10 @@ const FeedbackTable = () => {
                 <TableRow>
                   <TableHead 
                     className="cursor-pointer"
-                    onClick={() => handleSort('Summary')}
+                    onClick={() => handleSort('Feedback_Title' as keyof FeedbackItem)}
                   >
-                    Summary
-                    {sortField === 'Summary' && (
+                    Feedback
+                    {sortField === 'Feedback_Title' && (
                       sortDirection === 'asc' ? 
                         <ArrowUp className="h-4 w-4 inline ml-1" /> : 
                         <ArrowDown className="h-4 w-4 inline ml-1" />
@@ -235,10 +311,10 @@ const FeedbackTable = () => {
                   </TableHead>
                   <TableHead 
                     className="cursor-pointer"
-                    onClick={() => handleSort('Market')}
+                    onClick={() => handleSort('Product_Name' as keyof FeedbackItem)}
                   >
-                    Market
-                    {sortField === 'Market' && (
+                    Product
+                    {sortField === 'Product_Name' && (
                       sortDirection === 'asc' ? 
                         <ArrowUp className="h-4 w-4 inline ml-1" /> : 
                         <ArrowDown className="h-4 w-4 inline ml-1" />
@@ -246,10 +322,10 @@ const FeedbackTable = () => {
                   </TableHead>
                   <TableHead 
                     className="cursor-pointer"
-                    onClick={() => handleSort('Priority')}
+                    onClick={() => handleSort('Type' as keyof FeedbackItem)}
                   >
-                    Priority
-                    {sortField === 'Priority' && (
+                    Type
+                    {sortField === 'Type' && (
                       sortDirection === 'asc' ? 
                         <ArrowUp className="h-4 w-4 inline ml-1" /> : 
                         <ArrowDown className="h-4 w-4 inline ml-1" />
@@ -257,18 +333,7 @@ const FeedbackTable = () => {
                   </TableHead>
                   <TableHead 
                     className="cursor-pointer"
-                    onClick={() => handleSort('Sales_Sender')}
-                  >
-                    Sender
-                    {sortField === 'Sales_Sender' && (
-                      sortDirection === 'asc' ? 
-                        <ArrowUp className="h-4 w-4 inline ml-1" /> : 
-                        <ArrowDown className="h-4 w-4 inline ml-1" />
-                    )}
-                  </TableHead>
-                  <TableHead 
-                    className="cursor-pointer"
-                    onClick={() => handleSort('Status')}
+                    onClick={() => handleSort('Status' as keyof FeedbackItem)}
                   >
                     Status
                     {sortField === 'Status' && (
@@ -279,7 +344,7 @@ const FeedbackTable = () => {
                   </TableHead>
                   <TableHead 
                     className="cursor-pointer"
-                    onClick={() => handleSort('Creation_Date')}
+                    onClick={() => handleSort('Creation_Date' as keyof FeedbackItem)}
                   >
                     Date
                     {sortField === 'Creation_Date' && (
@@ -293,20 +358,21 @@ const FeedbackTable = () => {
               <TableBody>
                 {sortedData.map((feedback) => (
                   <TableRow 
-                    key={feedback.Id_No} 
-                    className="cursor-pointer hover:bg-muted/50"
+                    key={feedback.UUID_Number} 
+                    className={`cursor-pointer hover:bg-muted/50 ${feedback.Status === 'Unread' ? 'font-medium' : ''}`}
                     onClick={() => handleRowClick(feedback)}
                   >
-                    <TableCell className="font-medium">{feedback.Summary || 'N/A'}</TableCell>
-                    <TableCell>{feedback.Market || 'N/A'}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={`${getPriorityColor(feedback.Priority)}`}>
-                        {feedback.Priority || 'Unknown'}
+                      {feedback.Feedback_Title || feedback.Summary || 'No Title'}
+                    </TableCell>
+                    <TableCell>{feedback.Product_Name || 'N/A'}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={getTypeColor(feedback.Type)}>
+                        {feedback.Type || 'Unknown'}
                       </Badge>
                     </TableCell>
-                    <TableCell>{feedback.Sales_Sender || 'N/A'}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={`${getStatusColor(feedback.Status)}`}>
+                      <Badge variant="outline" className={getStatusColor(feedback.Status)}>
                         {feedback.Status || 'Unknown'}
                       </Badge>
                     </TableCell>
@@ -326,9 +392,9 @@ const FeedbackTable = () => {
           {selectedFeedback && (
             <>
               <SheetHeader>
-                <SheetTitle>{selectedFeedback.Summary || 'No Summary'}</SheetTitle>
+                <SheetTitle>{selectedFeedback.Feedback_Title || selectedFeedback.Summary || 'No Title'}</SheetTitle>
                 <SheetDescription>
-                  From {selectedFeedback.Sales_Sender || 'Unknown'} on {formatDate(selectedFeedback.Creation_Date)}
+                  From {selectedFeedback.Sales_Sender || 'Unknown'} • {formatDate(selectedFeedback.Creation_Date)}
                 </SheetDescription>
               </SheetHeader>
               
@@ -344,12 +410,14 @@ const FeedbackTable = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium mb-1">Type</p>
-                    <p className="text-sm">{selectedFeedback.Type || 'N/A'}</p>
+                    <Badge variant="outline" className={getTypeColor(selectedFeedback.Type)}>
+                      {selectedFeedback.Type || 'Unknown'}
+                    </Badge>
                   </div>
                   <div>
-                    <p className="text-sm font-medium mb-1">Priority</p>
-                    <Badge variant="outline" className={`${getPriorityColor(selectedFeedback.Priority)}`}>
-                      {selectedFeedback.Priority || 'Unknown'}
+                    <p className="text-sm font-medium mb-1">Status</p>
+                    <Badge variant="outline" className={getStatusColor(selectedFeedback.Status)}>
+                      {selectedFeedback.Status || 'Unknown'}
                     </Badge>
                   </div>
                 </div>
@@ -359,7 +427,7 @@ const FeedbackTable = () => {
                   <div className="flex flex-wrap gap-1">
                     {selectedFeedback.Tags ? 
                       selectedFeedback.Tags.split(',').map((tag, index) => (
-                        <Badge key={index} variant="outline">
+                        <Badge key={index} variant="outline" className="bg-gray-100 border-gray-200">
                           {tag.trim()}
                         </Badge>
                       ))
@@ -377,24 +445,41 @@ const FeedbackTable = () => {
               </div>
               
               <div className="mt-6">
-                <p className="text-sm font-medium mb-2">Status</p>
+                <p className="text-sm font-medium mb-2">Update Status</p>
                 <Select 
-                  defaultValue={selectedFeedback.Status || ''} 
-                  onValueChange={handleStatusChange}
+                  defaultValue={selectedFeedback.Status || 'Unread'} 
+                  onValueChange={(value) => updateFeedbackStatus(selectedFeedback.UUID_Number, value)}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Inbox">Inbox</SelectItem>
-                    <SelectItem value="Analyse">Analyse</SelectItem>
-                    <SelectItem value="Abgeschlossen">Abgeschlossen</SelectItem>
+                    <SelectItem value="Unread">Unread</SelectItem>
+                    <SelectItem value="Read">Read</SelectItem>
+                    <SelectItem value="Replied">Replied</SelectItem>
+                    <SelectItem value="Solved">Solved</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
-              <SheetFooter className="mt-6">
-                <Button className="w-full">Save Changes</Button>
+              <SheetFooter className="mt-6 flex-row space-x-2">
+                <Button 
+                  className="flex-1" 
+                  variant="outline"
+                  onClick={handleMarkAsReplied}
+                  disabled={selectedFeedback.Replied}
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Mark as Replied
+                </Button>
+                <Button 
+                  className="flex-1 bg-[#ff0105] hover:bg-[#dd0104]" 
+                  onClick={handleMarkAsSolved}
+                  disabled={selectedFeedback.Solved}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Mark as Solved
+                </Button>
               </SheetFooter>
             </>
           )}

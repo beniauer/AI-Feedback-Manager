@@ -1,208 +1,127 @@
 
-import React, { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { Calendar as CalendarIcon, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { useFilterContext, FilterState } from '@/context/FilterContext';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon, Filter } from 'lucide-react';
+import { format } from 'date-fns';
+import { useMobile } from '@/hooks/use-mobile';
+import { useFeedbackData } from '@/hooks/useFeedbackData';
 
-const mockOptions = {
-  products: ['PowerFast XL-5', 'DrillMaster Pro', 'DigiLevel 2000', 'UltraAnchor Max', 'SpeedRivet 500'],
-  markets: ['ConstructCorp', 'BuildRight Inc', 'PrecisionBuilders', 'Skyscraper Solutions', 'MetalWorks Manufacturing'],
-  priorities: ['Low', 'Medium', 'High'],
-  types: ['Bug', 'Feature Request', 'UX Issue', 'Performance', 'Documentation'],
-  statuses: ['Inbox', 'Analyse', 'Abgeschlossen']
-};
-
-const Sidebar: React.FC = () => {
-  const { filters, setFilters, clearFilters } = useFilterContext();
-  const [isOpen, setIsOpen] = useState(true);
-  const [tagInput, setTagInput] = useState('');
-  const [availableTags, setAvailableTags] = useState(['UX', 'Performance', 'Security', 'Pricing', 'Feature', 'Bug']);
-  const isMobile = useIsMobile();
-
-  // Auto-collapse sidebar on mobile
-  useEffect(() => {
-    if (isMobile) {
-      setIsOpen(false);
-    } else {
-      setIsOpen(true);
-    }
-  }, [isMobile]);
-
-  const handleTagAdd = () => {
-    if (tagInput && !filters.tags.includes(tagInput)) {
-      setFilters(prev => ({
-        ...prev,
-        tags: [...prev.tags, tagInput]
-      }));
-      setTagInput('');
-    }
-  };
-
-  const handleTagRemove = (tag: string) => {
-    setFilters(prev => ({
-      ...prev,
-      tags: prev.tags.filter(t => t !== tag)
-    }));
-  };
-
-  const handleMultiSelectChange = (
-    key: keyof FilterState,
-    value: string,
-    currentValues: string[]
-  ) => {
-    const isSelected = currentValues.includes(value);
-    let newValues;
-    
-    if (isSelected) {
-      newValues = currentValues.filter(v => v !== value);
-    } else {
-      newValues = [...currentValues, value];
-    }
-    
-    setFilters(prev => ({
-      ...prev,
-      [key]: newValues
-    }));
-  };
-
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
+const Sidebar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [startDate, setStartDate] = useState<Date>();
+  const [endDate, setEndDate] = useState<Date>();
+  const { isMobile } = useMobile();
+  const { data: feedbackData } = useFeedbackData();
+  
+  // Extract unique products and types
+  const products = React.useMemo(() => {
+    if (!feedbackData) return [];
+    return [...new Set(feedbackData.map(item => item.Product_Name).filter(Boolean))] as string[];
+  }, [feedbackData]);
+  
+  const types = React.useMemo(() => {
+    if (!feedbackData) return [];
+    return [...new Set(feedbackData.map(item => item.Type).filter(Boolean))] as string[];
+  }, [feedbackData]);
 
   return (
-    <div className="relative h-full">
-      <div className={cn(
-        "absolute top-0 left-0 h-[calc(100vh-4rem)] bg-white border-r w-72 transition-all duration-300 z-20",
-        isOpen ? "translate-x-0" : "-translate-x-72"
-      )}>
-        <div className="flex flex-col h-full">
-          <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
-          </div>
-          <div className="p-4 overflow-y-auto flex-1 filter-panel space-y-6">
-            {/* Product Filter */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Product</label>
-              <Select 
-                onValueChange={(value) => setFilters(prev => ({
-                  ...prev,
-                  products: value === 'all' ? [] : [value]
-                }))}
-                value={filters.products.length === 0 ? 'all' : filters.products[0]}
+    <>
+      {isMobile && (
+        <Button
+          variant="outline"
+          size="icon"
+          className="fixed bottom-4 right-4 z-50 rounded-full shadow-lg bg-white"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <Filter className={`h-5 w-5 ${isOpen ? 'text-[#ff0105]' : ''}`} />
+        </Button>
+      )}
+
+      <aside
+        className={`
+          ${isMobile ? 'fixed inset-y-0 z-40 transform transition-transform duration-300 ease-in-out' : 'relative border-r'}
+          ${isMobile && !isOpen ? '-translate-x-full' : 'translate-x-0'}
+          w-64 bg-white border-gray-200
+        `}
+      >
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Filters</h2>
+            {isMobile && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsOpen(false)}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Products" />
+                <span className="sr-only">Close</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </Button>
+            )}
+          </div>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="search">Search</Label>
+              <Input id="search" placeholder="Search feedback..." />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="product">Product</Label>
+              <Select>
+                <SelectTrigger id="product">
+                  <SelectValue placeholder="Select a product" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Products</SelectItem>
-                  {mockOptions.products.map(product => (
-                    <SelectItem key={product} value={product}>
-                      {product}
-                    </SelectItem>
+                  {products.map(product => (
+                    <SelectItem key={product} value={product}>{product}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Category Filter (was Type) */}
+            
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Category</label>
-              <Select 
-                onValueChange={(value) => setFilters(prev => ({
-                  ...prev,
-                  types: value === 'all' ? [] : [value]
-                }))}
-                value={filters.types.length === 0 ? 'all' : filters.types[0]}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Categories" />
+              <Label htmlFor="feedbackType">Feedback Type</Label>
+              <Select>
+                <SelectTrigger id="feedbackType">
+                  <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {mockOptions.types.map(type => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
+                  {types.map(type => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Customer Filter (was Market) */}
+            
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Customer</label>
-              <Select 
-                onValueChange={(value) => setFilters(prev => ({
-                  ...prev,
-                  markets: value === 'all' ? [] : [value]
-                }))}
-                value={filters.markets.length === 0 ? 'all' : filters.markets[0]}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Customers" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Customers</SelectItem>
-                  {mockOptions.markets.map(market => (
-                    <SelectItem key={market} value={market}>
-                      {market}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Date Range Filter */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Date Range</label>
+              <Label>Date Range</Label>
               <div className="grid grid-cols-2 gap-2">
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className="justify-start text-left font-normal bg-white border-gray-300 text-gray-800"
+                      className="justify-start text-left font-normal text-xs"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {filters.dateRange.from ? (
-                        format(filters.dateRange.from, "MMM dd, yyyy")
-                      ) : (
-                        <span>From</span>
-                      )}
+                      {startDate ? format(startDate, 'PPP') : <span>From</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
-                      selected={filters.dateRange.from}
-                      onSelect={(date) => 
-                        setFilters(prev => ({
-                          ...prev,
-                          dateRange: {
-                            ...prev.dateRange,
-                            from: date || prev.dateRange.from,
-                          }
-                        }))
-                      }
+                      selected={startDate}
+                      onSelect={setStartDate}
                       initialFocus
-                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
@@ -211,67 +130,37 @@ const Sidebar: React.FC = () => {
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className="justify-start text-left font-normal bg-white border-gray-300 text-gray-800"
+                      className="justify-start text-left font-normal text-xs"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {filters.dateRange.to ? (
-                        format(filters.dateRange.to, "MMM dd, yyyy")
-                      ) : (
-                        <span>To</span>
-                      )}
+                      {endDate ? format(endDate, 'PPP') : <span>To</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
-                      selected={filters.dateRange.to}
-                      onSelect={(date) => 
-                        setFilters(prev => ({
-                          ...prev,
-                          dateRange: {
-                            ...prev.dateRange,
-                            to: date || prev.dateRange.to,
-                          }
-                        }))
-                      }
+                      selected={endDate}
+                      onSelect={setEndDate}
                       initialFocus
-                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
               </div>
             </div>
-
-            <div className="pt-4">
-              <Button 
-                onClick={clearFilters} 
-                variant="outline" 
-                className="w-full"
-              >
-                Clear All Filters
-              </Button>
-            </div>
+            
+            <Button className="w-full bg-[#ff0105] hover:bg-[#dd0104]">Apply Filters</Button>
+            <Button variant="outline" className="w-full">Reset</Button>
           </div>
         </div>
-      </div>
+      </aside>
       
-      {/* Toggle button */}
-      <Button
-        variant="outline"
-        size="icon"
-        className={cn(
-          "absolute top-4 h-8 w-8 rounded-full bg-white shadow-md z-20",
-          isOpen ? "left-72 -translate-x-1/2" : "left-0 translate-x-1/2"
-        )}
-        onClick={toggleSidebar}
-      >
-        {isOpen ? (
-          <ChevronLeft className="h-4 w-4" />
-        ) : (
-          <ChevronRight className="h-4 w-4" />
-        )}
-      </Button>
-    </div>
+      {isMobile && isOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+    </>
   );
 };
 

@@ -9,48 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      "SFS Jun PM Overview": {
+      "SFS Jun PM Feedback": {
         Row: {
-          "Creation Date": string | null
-          Feedback_ID: string | null
+          "Feedback Title": string | null
           "Full Message": string | null
-          Id_No: number
-          Market: string | null
-          Priority: string | null
-          Product_Name: string | null
-          Sales_Sender: string | null
+          "Product Name": string | null
+          Replied: boolean | null
+          Solved: boolean | null
           Status: string | null
           Summary: string | null
           Tags: string | null
           Type: string | null
+          UUID_Number: number
         }
         Insert: {
-          "Creation Date"?: string | null
-          Feedback_ID?: string | null
+          "Feedback Title"?: string | null
           "Full Message"?: string | null
-          Id_No: number
-          Market?: string | null
-          Priority?: string | null
-          Product_Name?: string | null
-          Sales_Sender?: string | null
+          "Product Name"?: string | null
+          Replied?: boolean | null
+          Solved?: boolean | null
           Status?: string | null
           Summary?: string | null
           Tags?: string | null
           Type?: string | null
+          UUID_Number: number
         }
         Update: {
-          "Creation Date"?: string | null
-          Feedback_ID?: string | null
+          "Feedback Title"?: string | null
           "Full Message"?: string | null
-          Id_No?: number
-          Market?: string | null
-          Priority?: string | null
-          Product_Name?: string | null
-          Sales_Sender?: string | null
+          "Product Name"?: string | null
+          Replied?: boolean | null
+          Solved?: boolean | null
           Status?: string | null
           Summary?: string | null
           Tags?: string | null
           Type?: string | null
+          UUID_Number?: number
         }
         Relationships: []
       }
