@@ -1,4 +1,3 @@
-
 import { FeedbackItem, FeedbackStatus } from '@/types/feedback';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -19,18 +18,20 @@ export function getTypeColor(type: string | undefined): string {
       return 'bg-[#6050DC] text-white';
     case 'suggestion':
       return 'bg-[#D52DB7] text-white';
-    case 'praise':
+    case 'problem':
+    case 'praise':  // Keeping praise compatible with previous code
       return 'bg-[#FF2E7E] text-white';
-    case 'question':
+    case 'feature request':
+    case 'question': // Keeping question compatible with previous code
       return 'bg-[#FF6B45] text-white';
     case 'price':
       return 'bg-[#FFAB05] text-white';
-    case 'competitor':
+    case 'competition':
+    case 'competitor': // Keeping competitor compatible with previous code
       return 'bg-[#FFF79C] text-black'; // Using black text for better contrast on light background
+    // Keeping other mappings for backward compatibility
     case 'bug':
       return 'bg-[#6050DC] text-white';
-    case 'feature request':
-      return 'bg-[#D52DB7] text-white';
     case 'ux issue':
       return 'bg-[#FF2E7E] text-white';
     case 'performance':
@@ -75,12 +76,10 @@ export const updateFeedbackStatus = async (id: number, status: string) => {
     
     if (error) throw error;
     
-    // Use the correct Sonner toast API format
     toast.success(`Feedback status changed to ${status}`);
     return true;
   } catch (error) {
     console.error('Error updating status:', error);
-    // Use the correct Sonner toast API format
     toast.error("Failed to update feedback status");
     return false;
   }
@@ -95,12 +94,10 @@ export const markFeedbackAsReplied = async (id: number) => {
     
     if (error) throw error;
     
-    // Use the correct Sonner toast API format
     toast.success("Feedback has been marked as replied");
     return true;
   } catch (error) {
     console.error('Error updating replied status:', error);
-    // Use the correct Sonner toast API format
     toast.error("Failed to mark feedback as replied");
     return false;
   }
@@ -115,12 +112,10 @@ export const markFeedbackAsSolved = async (id: number, solved: boolean = true) =
     
     if (error) throw error;
     
-    // Use the correct Sonner toast API format
     toast.success(`Feedback marked as ${solved ? 'solved' : 'unsolved'}`);
     return true;
   } catch (error) {
     console.error('Error updating solved status:', error);
-    // Use the correct Sonner toast API format
     toast.error('Failed to update feedback status');
     return false;
   }
@@ -128,7 +123,6 @@ export const markFeedbackAsSolved = async (id: number, solved: boolean = true) =
 
 export const exportFeedbackAsCSV = (feedbackData: FeedbackItem[] | undefined) => {
   if (!feedbackData || feedbackData.length === 0) {
-    // Use the correct Sonner toast API format
     toast.error("No data available to export");
     return;
   }
@@ -155,11 +149,9 @@ export const exportFeedbackAsCSV = (feedbackData: FeedbackItem[] | undefined) =>
     // Clean up
     URL.revokeObjectURL(url);
     
-    // Use the correct Sonner toast API format
     toast.success("Your data has been exported as CSV");
   } catch (error) {
     console.error('Error exporting CSV:', error);
-    // Use the correct Sonner toast API format
     toast.error("Failed to export data");
   }
 };

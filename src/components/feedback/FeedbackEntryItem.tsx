@@ -8,8 +8,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 interface FeedbackEntryItemProps {
   feedback: FeedbackItem;
@@ -40,26 +38,12 @@ const FeedbackEntryItem = ({
   };
 
   const handleSolvedChange = async (checked: boolean) => {
-    try {
-      // Update the database
-      const { error } = await supabase
-        .from('SFS Jun PM Feedback')
-        .update({ 
-          Solved: checked,
-          Status: checked ? 'Solved' : 'Unread' // If solved, it's considered read
-        })
-        .eq('UUID_Number', feedback.UUID_Number);
-      
-      if (error) throw error;
-      
-      // Show success toast
-      toast.success(`Feedback marked as ${checked ? 'solved' : 'unsolved'}`);
-      
+    // Call the markFeedbackAsSolved function to update the database
+    const success = await markFeedbackAsSolved(feedback.UUID_Number, checked);
+    
+    if (success) {
       // Invalidate the feedback query to refresh data
       queryClient.invalidateQueries({ queryKey: ['feedback'] });
-    } catch (error) {
-      console.error('Error updating feedback status:', error);
-      toast.error('Failed to update feedback status');
     }
   };
   
@@ -86,7 +70,7 @@ const FeedbackEntryItem = ({
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id={`solved-${feedback.UUID_Number}`}
-                checked={feedback.Solved}
+                checked={feedback.Solved || false}
                 onCheckedChange={handleSolvedChange}
               />
               <label htmlFor={`solved-${feedback.UUID_Number}`} className="text-sm text-muted-foreground">
