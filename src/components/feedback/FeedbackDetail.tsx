@@ -55,7 +55,7 @@ const FeedbackDetail = ({ feedback }: FeedbackDetailProps) => {
   };
 
   const handleMarkAsSolved = async () => {
-    console.log('Mark as solved clicked, current status:', isSolved);
+    console.log('Mark as solved clicked in detail view, current status:', isSolved);
     
     // Optimistically update UI
     setIsSolved(!isSolved);
@@ -64,9 +64,11 @@ const FeedbackDetail = ({ feedback }: FeedbackDetailProps) => {
     const success = await toggleFeedbackSolvedStatus(feedback.UUID_Number, isSolved);
     
     if (success) {
+      console.log('Detail view: Successfully toggled solved status');
       // Refresh data from server
       queryClient.invalidateQueries({ queryKey: ['feedback'] });
     } else {
+      console.error('Detail view: Failed to toggle solved status, reverting UI');
       // Revert UI if failed
       setIsSolved(isSolved);
     }

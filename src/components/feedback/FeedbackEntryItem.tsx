@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { FeedbackItem } from '@/types/feedback';
 import { formatDate, getTypeColor, toggleFeedbackSolvedStatus } from '@/utils/feedbackUtils';
@@ -47,6 +48,7 @@ const FeedbackEntryItem = ({
     e.stopPropagation();
     
     console.log('Toggle solved button clicked for feedback:', feedback.UUID_Number);
+    console.log('Current solved status:', isSolved);
     
     // Optimistically update the UI
     setIsSolved(!isSolved);
@@ -59,6 +61,7 @@ const FeedbackEntryItem = ({
       // Force refresh all feedback data
       queryClient.invalidateQueries({ queryKey: ['feedback'] });
     } else {
+      console.error('Failed to toggle solved status, reverting UI');
       // Revert UI if the API call failed
       setIsSolved(isSolved);
     }
@@ -93,6 +96,7 @@ const FeedbackEntryItem = ({
                 isSolved ? "border-green-500 text-green-600" : ""
               )}
               onClick={handleSolvedToggle}
+              data-id={feedback.UUID_Number}
             >
               {isSolved ? (
                 <>

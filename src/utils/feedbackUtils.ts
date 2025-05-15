@@ -104,7 +104,7 @@ export const markFeedbackAsReplied = async (id: number) => {
   }
 };
 
-// Completely rebuilt function with better error handling and UI feedback
+// Improved function with detailed logging and better error handling
 export const toggleFeedbackSolvedStatus = async (id: number, currentStatus: boolean) => {
   // Show immediate loading toast for better UX
   const toastId = toast.loading(currentStatus ? 'Removing solved status...' : 'Marking as solved...');
@@ -115,14 +115,27 @@ export const toggleFeedbackSolvedStatus = async (id: number, currentStatus: bool
     // Define the new state (opposite of current)
     const newSolvedState = !currentStatus;
     
-    // Make the update to Supabase
-    const { error } = await supabase
+    // Log the exact update we're sending to Supabase
+    console.log('Sending update to Supabase:', {
+      table: 'SFS Jun PM Feedback',
+      id: id,
+      update: { 
+        Solved: newSolvedState, 
+        Status: newSolvedState ? 'Solved' : 'Read' 
+      }
+    });
+    
+    // Make the update to Supabase with explicit column names
+    const { data, error } = await supabase
       .from('SFS Jun PM Feedback')
       .update({ 
         Solved: newSolvedState, 
         Status: newSolvedState ? 'Solved' : 'Read' 
       })
       .eq('UUID_Number', id);
+    
+    // Log the response from Supabase
+    console.log('Supabase update response:', { data, error });
     
     // Check for errors
     if (error) {
