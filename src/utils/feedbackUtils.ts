@@ -12,21 +12,34 @@ export const getStatusColor = (status?: string) => {
   }
 };
 
-export const getTypeColor = (type?: string) => {
-  switch (type?.toLowerCase()) {
-    case 'bug': return 'bg-red-100 text-red-800 border-red-200';
-    case 'feature request': return 'bg-orange-100 text-orange-800 border-orange-200';
-    case 'ux issue': return 'bg-pink-100 text-pink-800 border-pink-200';
-    case 'performance': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    case 'documentation': return 'bg-sky-100 text-sky-800 border-sky-200';
-    case 'question': return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'feedback': return 'bg-purple-100 text-purple-800 border-purple-200';
-    case 'issue': return 'bg-amber-100 text-amber-800 border-amber-200';
-    case 'suggestion': return 'bg-teal-100 text-teal-800 border-teal-200';
-    case 'improvement': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
-    case 'critical': return 'bg-rose-100 text-rose-800 border-rose-200';
-    case 'enhancement': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    default: return 'bg-gray-100 text-gray-800 border-gray-200';
+export function getTypeColor(type: string | undefined): string {
+  switch ((type || '').toLowerCase()) {
+    case 'bug':
+      return 'bg-[#6050DC] text-white'; // Majorelle Blue
+    case 'feature request':
+      return 'bg-[#D52DB7] text-white'; // Steel Pink
+    case 'ux issue':
+      return 'bg-[#FF2E7E] text-white'; // Electric Pink
+    case 'performance':
+      return 'bg-[#FF6B45] text-white'; // Outrageous Orange
+    case 'documentation':
+      return 'bg-[#FFAB05] text-white'; // Chrome Yellow
+    case 'question':
+      return 'bg-[#6050DC] text-white'; // Majorelle Blue
+    case 'feedback':
+      return 'bg-[#D52DB7] text-white'; // Steel Pink
+    case 'issue':
+      return 'bg-[#FF2E7E] text-white'; // Electric Pink 
+    case 'suggestion':
+      return 'bg-[#FF6B45] text-white'; // Outrageous Orange
+    case 'improvement':
+      return 'bg-[#FFAB05] text-white'; // Chrome Yellow
+    case 'critical':
+      return 'bg-[#FF2E7E] text-white'; // Electric Pink
+    case 'enhancement':
+      return 'bg-[#D52DB7] text-white'; // Steel Pink
+    default:
+      return 'bg-gray-500 text-white'; // Default
   }
 };
 

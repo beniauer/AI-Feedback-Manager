@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface FeedbackEntryItemProps {
   feedback: FeedbackItem;
@@ -21,6 +24,7 @@ const FeedbackEntryItem = ({
   onToggleExpand, 
   onSelect 
 }: FeedbackEntryItemProps) => {
+  const queryClient = useQueryClient();
   
   // Determine if there is a priority badge (could be extracted from tags or added to DB)
   const getPriorityBadge = () => {
@@ -36,15 +40,33 @@ const FeedbackEntryItem = ({
   };
 
   const handleSolvedChange = async (checked: boolean) => {
-    if (checked) {
-      await markFeedbackAsSolved(feedback.UUID_Number);
+    try {
+      // Update the database
+      const { error } = await supabase
+        .from('SFS Jun PM Feedback')
+        .update({ 
+          Solved: checked,
+          Status: checked ? 'Read' : 'Unread' // If solved, it's considered read
+        })
+        .eq('UUID_Number', feedback.UUID_Number);
+      
+      if (error) throw error;
+      
+      // Show success toast
+      toast.success(`Feedback marked as ${checked ? 'solved' : 'unsolved'}`);
+      
+      // Invalidate the feedback query to refresh data
+      queryClient.invalidateQueries({ queryKey: ['feedback'] });
+    } catch (error) {
+      console.error('Error updating feedback status:', error);
+      toast.error('Failed to update feedback status');
     }
   };
   
   return (
     <div className={cn(
       "border-b last:border-0",
-      feedback.Status === 'Unread' ? 'bg-blue-50' : ''
+      feedback.Solved ? 'bg-gray-50' : feedback.Status === 'Unread' ? 'bg-blue-50' : ''
     )}>
       <div className="p-4">
         <div className="flex items-start justify-between">
@@ -68,7 +90,7 @@ const FeedbackEntryItem = ({
                 onCheckedChange={handleSolvedChange}
               />
               <label htmlFor={`solved-${feedback.UUID_Number}`} className="text-sm text-muted-foreground">
-                Solved
+                {feedback.Solved ? 'Solved' : 'Mark as solved'}
               </label>
             </div>
             <Button variant="ghost" size="sm" onClick={onToggleExpand}>

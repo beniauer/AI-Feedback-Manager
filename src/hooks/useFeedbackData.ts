@@ -38,7 +38,8 @@ export function useFeedbackData() {
     queryFn: async (): Promise<FeedbackItem[]> => {
       const { data, error } = await supabase
         .from('SFS Jun PM Feedback')
-        .select('*');
+        .select('*')
+        .order('Creation_Date', { ascending: false }); // Always order by newest first
       
       if (error) {
         console.error('Error fetching feedback data:', error);
@@ -71,7 +72,8 @@ export function useFeedbackData() {
 
 export function useUnreadCount() {
   const { data } = useFeedbackData();
-  return data?.filter(item => item.Status === 'Unread').length || 0;
+  // Count items that are not solved (unread means not solved in this context)
+  return data?.filter(item => item.Solved !== true).length || 0;
 }
 
 export function useSolvedCount() {

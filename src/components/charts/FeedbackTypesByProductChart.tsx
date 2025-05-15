@@ -40,22 +40,22 @@ const FeedbackTypesByProductChart = ({ productName }: { productName?: string }) 
     return Object.entries(grouped).map(([name, value]) => ({ name, value }));
   }, [feedbackData, productName]);
   
-  // Colors for different feedback types
+  // Updated colors based on provided image
   const getColorForType = (type: string) => {
     switch (type.toLowerCase()) {
-      case 'bug': return '#ef4444';
-      case 'feature request': return '#f97316';
-      case 'ux issue': return '#ec4899';
-      case 'performance': return '#eab308';
-      case 'documentation': return '#0ea5e9';
-      case 'question': return '#3b82f6';
-      case 'feedback': return '#8b5cf6';
-      case 'issue': return '#f59e0b';
-      case 'suggestion': return '#14b8a6';
-      case 'improvement': return '#6366f1';
-      case 'critical': return '#e11d48';
-      case 'enhancement': return '#10b981';
-      default: return '#a1a1aa';
+      case 'bug': return '#6050DC'; // Majorelle Blue
+      case 'feature request': return '#D52DB7'; // Steel Pink
+      case 'ux issue': return '#FF2E7E'; // Electric Pink
+      case 'performance': return '#FF6B45'; // Outrageous Orange
+      case 'documentation': return '#FFAB05'; // Chrome Yellow
+      case 'question': return '#6050DC'; // Majorelle Blue
+      case 'feedback': return '#D52DB7'; // Steel Pink
+      case 'issue': return '#FF2E7E'; // Electric Pink
+      case 'suggestion': return '#FF6B45'; // Outrageous Orange
+      case 'improvement': return '#FFAB05'; // Chrome Yellow
+      case 'critical': return '#FF2E7E'; // Electric Pink
+      case 'enhancement': return '#D52DB7'; // Steel Pink
+      default: return '#a1a1aa'; // Default gray
     }
   };
 
