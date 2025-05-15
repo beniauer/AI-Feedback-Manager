@@ -94,7 +94,8 @@ const FeedbackTable = () => {
       
       if (error) throw error;
       
-      refetch();
+      // With real-time updates, we don't need to manually refetch
+      // The subscription will handle it
       
       toast({
         title: "Status Updated",
@@ -121,7 +122,7 @@ const FeedbackTable = () => {
       
       if (error) throw error;
       
-      refetch();
+      // Real-time update will trigger refetch
       
       toast({
         title: "Marked as Replied",
@@ -148,7 +149,7 @@ const FeedbackTable = () => {
       
       if (error) throw error;
       
-      refetch();
+      // Real-time update will trigger refetch
       
       toast({
         title: "Marked as Solved",

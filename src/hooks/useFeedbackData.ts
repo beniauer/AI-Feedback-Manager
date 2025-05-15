@@ -1,9 +1,38 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { FeedbackItem } from '@/types/feedback';
+import { useEffect } from 'react';
 
 export function useFeedbackData() {
+  const queryClient = useQueryClient();
+  
+  // Set up real-time subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',  // Listen for all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'SFS Jun PM Feedback'
+        },
+        () => {
+          console.log('Real-time update received, invalidating query cache');
+          queryClient.invalidateQueries({ queryKey: ['feedback'] });
+        }
+      )
+      .subscribe();
+      
+    console.log('Real-time channel subscription initialized');
+      
+    return () => {
+      console.log('Unsubscribing from real-time channel');
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ['feedback'],
     queryFn: async (): Promise<FeedbackItem[]> => {
