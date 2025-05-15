@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { FeedbackItem } from '@/types/feedback';
-import { formatDate, getTypeColor } from '@/utils/feedbackUtils';
+import { formatDate, getTypeColor, markFeedbackAsSolved } from '@/utils/feedbackUtils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +34,12 @@ const FeedbackEntryItem = ({
     }
     return null;
   };
+
+  const handleSolvedChange = async (checked: boolean) => {
+    if (checked) {
+      await markFeedbackAsSolved(feedback.UUID_Number);
+    }
+  };
   
   return (
     <div className={cn(
@@ -53,9 +60,21 @@ const FeedbackEntryItem = ({
               {feedback.Feedback_Title || feedback.Summary || 'No Title'}
             </h3>
           </div>
-          <Button variant="ghost" size="sm" onClick={onToggleExpand}>
-            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id={`solved-${feedback.UUID_Number}`}
+                checked={feedback.Solved}
+                onCheckedChange={handleSolvedChange}
+              />
+              <label htmlFor={`solved-${feedback.UUID_Number}`} className="text-sm text-muted-foreground">
+                Solved
+              </label>
+            </div>
+            <Button variant="ghost" size="sm" onClick={onToggleExpand}>
+              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
         
         {isExpanded && (

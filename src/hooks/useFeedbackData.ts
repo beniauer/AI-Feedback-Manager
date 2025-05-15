@@ -18,8 +18,8 @@ export function useFeedbackData() {
           schema: 'public',
           table: 'SFS Jun PM Feedback'
         },
-        () => {
-          console.log('Real-time update received, invalidating query cache');
+        (payload) => {
+          console.log('Real-time update received:', payload);
           queryClient.invalidateQueries({ queryKey: ['feedback'] });
         }
       )

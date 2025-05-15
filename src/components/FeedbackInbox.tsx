@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -10,21 +10,25 @@ import {
   Sheet,
   SheetContent,
 } from '@/components/ui/sheet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PieChart } from 'lucide-react';
 import { useFeedbackData } from '@/hooks/useFeedbackData';
 import { FeedbackItem } from '@/types/feedback';
 import FeedbackDetail from '@/components/feedback/FeedbackDetail';
 import FeedbackEntryItem from '@/components/feedback/FeedbackEntryItem';
 import FeedbackFilter from '@/components/feedback/FeedbackFilter';
-import { ChevronDown, ChevronUp, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { exportFeedbackAsCSV } from '@/utils/feedbackUtils';
 import { LoadingState, ErrorState, EmptyState } from '@/components/feedback/FeedbackStates';
 import { useFilterContext } from '@/context/FilterContext';
+import FeedbackTypesByProductChart from '@/components/charts/FeedbackTypesByProductChart';
 
 const FeedbackInbox = () => {
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackItem | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
+  const [selectedProduct, setSelectedProduct] = useState<string | undefined>(undefined);
   
   const { filters } = useFilterContext();
   const { data: feedbackData, isLoading, error, refetch } = useFeedbackData();
@@ -44,6 +48,20 @@ const FeedbackInbox = () => {
   const handleExportCSV = () => {
     exportFeedbackAsCSV(filteredFeedback);
   };
+
+  // Get unique products for product filter in pie chart
+  const uniqueProducts = React.useMemo(() => {
+    if (!feedbackData) return [];
+    const products = new Set<string>();
+    
+    feedbackData.forEach(item => {
+      if (item.Product_Name) {
+        products.add(item.Product_Name);
+      }
+    });
+    
+    return Array.from(products);
+  }, [feedbackData]);
 
   const filteredFeedback = React.useMemo(() => {
     if (!feedbackData) return [];
@@ -132,6 +150,40 @@ const FeedbackInbox = () => {
               />
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="text-lg font-medium">Feedback Analytics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="overview">
+            <TabsList className="mb-4">
+              <TabsTrigger value="overview" className="flex items-center gap-1">
+                <PieChart className="h-4 w-4" />
+                All Feedback
+              </TabsTrigger>
+              {uniqueProducts.map(product => (
+                <TabsTrigger 
+                  key={product} 
+                  value={product} 
+                  onClick={() => setSelectedProduct(product)}
+                  className="flex items-center gap-1"
+                >
+                  {product}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <TabsContent value="overview" className="h-80">
+              <FeedbackTypesByProductChart />
+            </TabsContent>
+            {uniqueProducts.map(product => (
+              <TabsContent key={product} value={product} className="h-80">
+                <FeedbackTypesByProductChart productName={product} />
+              </TabsContent>
+            ))}
+          </Tabs>
         </CardContent>
       </Card>
 
