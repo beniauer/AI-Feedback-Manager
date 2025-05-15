@@ -46,7 +46,7 @@ const FeedbackEntryItem = ({
         .from('SFS Jun PM Feedback')
         .update({ 
           Solved: checked,
-          Status: checked ? 'Read' : 'Unread' // If solved, it's considered read
+          Status: checked ? 'Solved' : 'Unread' // If solved, it's considered read
         })
         .eq('UUID_Number', feedback.UUID_Number);
       

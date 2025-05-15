@@ -39,8 +39,8 @@ export function useFeedbackData() {
       const { data, error } = await supabase
         .from('SFS Jun PM Feedback')
         .select('*')
-        .order('Creation_Date', { ascending: false }); // Always order by newest first
-      
+        // Removed the ordering by Creation_Date as that column doesn't exist
+        
       if (error) {
         console.error('Error fetching feedback data:', error);
         throw new Error('Failed to fetch feedback data');
@@ -60,11 +60,13 @@ export function useFeedbackData() {
         Status: item['Status'] || 'Unread',
         Replied: item['Replied'] || false,
         Solved: item['Solved'] || false,
-        Creation_Date: item['Creation_Date'] || new Date().toISOString()
+        Creation_Date: new Date().toISOString() // Default to current date since Creation_Date doesn't exist in DB
       })) || [];
 
       console.log('Fetched feedback data:', mappedData);
-      return mappedData;
+      
+      // Sort by UUID_Number (descending) to show the newest items first
+      return mappedData.sort((a, b) => b.UUID_Number - a.UUID_Number);
     },
     refetchOnWindowFocus: false
   });

@@ -10,7 +10,11 @@ import {
 } from 'recharts';
 import { useFeedbackData } from '@/hooks/useFeedbackData';
 
-const FeedbackTypesByProductChart = ({ productName }: { productName?: string }) => {
+interface FeedbackTypesByProductChartProps {
+  productName?: string;
+}
+
+const FeedbackTypesByProductChart = ({ productName }: FeedbackTypesByProductChartProps) => {
   const { data: feedbackData } = useFeedbackData();
   
   // Process data for the chart
@@ -18,17 +22,17 @@ const FeedbackTypesByProductChart = ({ productName }: { productName?: string }) 
     if (!feedbackData || feedbackData.length === 0) {
       // Sample data
       return [
-        { name: 'Bug', value: 2 },
-        { name: 'Feature Request', value: 3 },
-        { name: 'Question', value: 1 },
+        { name: 'Bug', value: 5, color: '#6050DC' },
+        { name: 'Feature', value: 7, color: '#D52DB7' },
+        { name: 'Question', value: 3, color: '#FF6B45' },
+        { name: 'Other', value: 2, color: '#FFAB05' }
       ];
     }
     
     // Filter by product if specified
-    let filteredData = feedbackData;
-    if (productName) {
-      filteredData = feedbackData.filter(item => item.Product_Name === productName);
-    }
+    const filteredData = productName 
+      ? feedbackData.filter(item => item.Product_Name === productName)
+      : feedbackData;
     
     // Group feedbacks by type
     const grouped = filteredData.reduce((acc, item) => {
@@ -37,31 +41,24 @@ const FeedbackTypesByProductChart = ({ productName }: { productName?: string }) 
       return acc;
     }, {} as Record<string, number>);
     
-    return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+    // Map to chart data format with colors
+    return Object.entries(grouped).map(([name, value]) => {
+      let color;
+      switch (name.toLowerCase()) {
+        case 'complaint': color = '#6050DC'; break;
+        case 'suggestion': color = '#D52DB7'; break;
+        case 'praise': color = '#FF2E7E'; break;
+        case 'question': color = '#FF6B45'; break;
+        case 'price': color = '#FFAB05'; break;
+        case 'competitor': color = '#FFF79C'; break;
+        case 'bug': color = '#6050DC'; break;
+        case 'feature request': color = '#D52DB7'; break;
+        default: color = '#a1a1aa'; break;
+      }
+      
+      return { name, value, color };
+    });
   }, [feedbackData, productName]);
-  
-  // Updated colors based on provided image
-  const getColorForType = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'bug': return '#6050DC'; // Majorelle Blue
-      case 'feature request': return '#D52DB7'; // Steel Pink
-      case 'ux issue': return '#FF2E7E'; // Electric Pink
-      case 'performance': return '#FF6B45'; // Outrageous Orange
-      case 'documentation': return '#FFAB05'; // Chrome Yellow
-      case 'question': return '#6050DC'; // Majorelle Blue
-      case 'feedback': return '#D52DB7'; // Steel Pink
-      case 'issue': return '#FF2E7E'; // Electric Pink
-      case 'suggestion': return '#FF6B45'; // Outrageous Orange
-      case 'improvement': return '#FFAB05'; // Chrome Yellow
-      case 'critical': return '#FF2E7E'; // Electric Pink
-      case 'enhancement': return '#D52DB7'; // Steel Pink
-      default: return '#a1a1aa'; // Default gray
-    }
-  };
-
-  if (chartData.length === 0) {
-    return <div className="flex items-center justify-center h-full">No data available</div>;
-  }
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -76,11 +73,11 @@ const FeedbackTypesByProductChart = ({ productName }: { productName?: string }) 
           dataKey="value"
           label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
         >
-          {chartData.map((entry) => (
-            <Cell key={`cell-${entry.name}`} fill={getColorForType(entry.name)} />
+          {chartData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.color} />
           ))}
         </Pie>
-        <Tooltip formatter={(value) => [`${value} entries`, 'Count']} />
+        <Tooltip />
         <Legend />
       </RechartsPieChart>
     </ResponsiveContainer>
