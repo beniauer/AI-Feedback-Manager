@@ -19,16 +19,14 @@ import { ChevronDown, ChevronUp, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { exportFeedbackAsCSV } from '@/utils/feedbackUtils';
 import { LoadingState, ErrorState, EmptyState } from '@/components/feedback/FeedbackStates';
+import { useFilterContext } from '@/context/FilterContext';
 
 const FeedbackInbox = () => {
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackItem | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
-  const [dateFilter, setDateFilter] = useState<{from: Date | null, to: Date | null}>({
-    from: null,
-    to: null
-  });
   
+  const { filters } = useFilterContext();
   const { data: feedbackData, isLoading, error, refetch } = useFeedbackData();
 
   const handleEntryClick = (feedback: FeedbackItem) => {
@@ -44,7 +42,7 @@ const FeedbackInbox = () => {
   };
 
   const handleExportCSV = () => {
-    exportFeedbackAsCSV(feedbackData);
+    exportFeedbackAsCSV(filteredFeedback);
   };
 
   const filteredFeedback = React.useMemo(() => {
@@ -52,18 +50,32 @@ const FeedbackInbox = () => {
     
     let filtered = [...feedbackData];
     
+    // Apply product filtering
+    if (filters.products.length > 0) {
+      filtered = filtered.filter(item => 
+        filters.products.includes(item.Product_Name || '')
+      );
+    }
+    
+    // Apply type filtering
+    if (filters.types.length > 0) {
+      filtered = filtered.filter(item => 
+        filters.types.includes(item.Type || '')
+      );
+    }
+    
     // Apply date filtering
-    if (dateFilter.from || dateFilter.to) {
+    if (filters.dateRange.from || filters.dateRange.to) {
       filtered = filtered.filter(item => {
         const itemDate = item.Creation_Date ? new Date(item.Creation_Date) : null;
         if (!itemDate) return true;
         
-        if (dateFilter.from && dateFilter.to) {
-          return itemDate >= dateFilter.from && itemDate <= dateFilter.to;
-        } else if (dateFilter.from) {
-          return itemDate >= dateFilter.from;
-        } else if (dateFilter.to) {
-          return itemDate <= dateFilter.to;
+        if (filters.dateRange.from && filters.dateRange.to) {
+          return itemDate >= filters.dateRange.from && itemDate <= filters.dateRange.to;
+        } else if (filters.dateRange.from) {
+          return itemDate >= filters.dateRange.from;
+        } else if (filters.dateRange.to) {
+          return itemDate <= filters.dateRange.to;
         }
         return true;
       });
@@ -75,7 +87,7 @@ const FeedbackInbox = () => {
       const dateB = b.Creation_Date ? new Date(b.Creation_Date).getTime() : 0;
       return dateB - dateA;
     });
-  }, [feedbackData, dateFilter]);
+  }, [feedbackData, filters]);
 
   // Get only the 5 newest items
   const newestFeedback = filteredFeedback.slice(0, 5);
@@ -98,7 +110,7 @@ const FeedbackInbox = () => {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg font-medium">Feedback Entries</CardTitle>
           <div className="flex items-center gap-2">
-            <FeedbackFilter onFilterChange={setDateFilter} />
+            <FeedbackFilter />
             <Button variant="outline" size="sm" className="h-8" onClick={handleExportCSV}>
               <Download className="h-4 w-4 mr-2" />
               Export CSV

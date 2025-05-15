@@ -1,16 +1,12 @@
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
 
 export interface FilterState {
   products: string[];
-  markets: string[];
-  priorities: string[];
   types: string[];
-  statuses: string[];
-  tags: string[];
   dateRange: {
-    from: Date;
-    to: Date;
+    from: Date | null;
+    to: Date | null;
   };
 }
 
@@ -18,23 +14,19 @@ interface FilterContextType {
   filters: FilterState;
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
   clearFilters: () => void;
+  setProductFilter: (products: string[]) => void;
+  setTypeFilter: (types: string[]) => void;
+  setDateRangeFilter: (from: Date | null, to: Date | null) => void;
+  areFiltersActive: boolean;
 }
-
-const getDefaultDateRange = () => {
-  const to = new Date();
-  const from = new Date();
-  from.setDate(from.getDate() - 90); // Default to last 90 days
-  return { from, to };
-};
 
 const defaultFilters: FilterState = {
   products: [],
-  markets: [],
-  priorities: [],
   types: [],
-  statuses: [],
-  tags: [],
-  dateRange: getDefaultDateRange(),
+  dateRange: {
+    from: null,
+    to: null,
+  },
 };
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
@@ -50,12 +42,50 @@ export const useFilterContext = () => {
 export const FilterProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setFilters(defaultFilters);
-  };
+  }, []);
+
+  const setProductFilter = useCallback((products: string[]) => {
+    setFilters(prev => ({
+      ...prev,
+      products
+    }));
+  }, []);
+
+  const setTypeFilter = useCallback((types: string[]) => {
+    setFilters(prev => ({
+      ...prev,
+      types
+    }));
+  }, []);
+
+  const setDateRangeFilter = useCallback((from: Date | null, to: Date | null) => {
+    setFilters(prev => ({
+      ...prev,
+      dateRange: { from, to }
+    }));
+  }, []);
+
+  // Compute whether any filters are active
+  const areFiltersActive = 
+    filters.products.length > 0 || 
+    filters.types.length > 0 || 
+    !!filters.dateRange.from || 
+    !!filters.dateRange.to;
 
   return (
-    <FilterContext.Provider value={{ filters, setFilters, clearFilters }}>
+    <FilterContext.Provider 
+      value={{ 
+        filters, 
+        setFilters, 
+        clearFilters, 
+        setProductFilter, 
+        setTypeFilter, 
+        setDateRangeFilter,
+        areFiltersActive
+      }}
+    >
       {children}
     </FilterContext.Provider>
   );

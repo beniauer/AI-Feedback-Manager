@@ -1,4 +1,3 @@
-
 import { FeedbackItem, FeedbackStatus } from '@/types/feedback';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
@@ -22,6 +21,11 @@ export const getTypeColor = (type?: string) => {
     case 'documentation': return 'bg-sky-100 text-sky-800 border-sky-200';
     case 'question': return 'bg-blue-100 text-blue-800 border-blue-200';
     case 'feedback': return 'bg-purple-100 text-purple-800 border-purple-200';
+    case 'issue': return 'bg-amber-100 text-amber-800 border-amber-200';
+    case 'suggestion': return 'bg-teal-100 text-teal-800 border-teal-200';
+    case 'improvement': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+    case 'critical': return 'bg-rose-100 text-rose-800 border-rose-200';
+    case 'enhancement': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
     default: return 'bg-gray-100 text-gray-800 border-gray-200';
   }
 };

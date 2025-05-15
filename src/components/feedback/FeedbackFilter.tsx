@@ -1,49 +1,40 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon, FilterIcon, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useFilterContext } from '@/context/FilterContext';
 
-interface FeedbackFilterProps {
-  onFilterChange: (dateRange: { from: Date | null, to: Date | null }) => void;
-}
-
-const FeedbackFilter = ({ onFilterChange }: FeedbackFilterProps) => {
-  const [fromDate, setFromDate] = useState<Date | null>(null);
-  const [toDate, setToDate] = useState<Date | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
+const FeedbackFilter = () => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const { 
+    filters, 
+    setDateRangeFilter, 
+    clearFilters,
+    areFiltersActive
+  } = useFilterContext();
 
   const handleFromDateChange = (date: Date | null) => {
-    setFromDate(date);
-    onFilterChange({ from: date, to: toDate });
+    setDateRangeFilter(date, filters.dateRange.to);
   };
 
   const handleToDateChange = (date: Date | null) => {
-    setToDate(date);
-    onFilterChange({ from: fromDate, to: date });
+    setDateRangeFilter(filters.dateRange.from, date);
   };
-
-  const clearFilters = () => {
-    setFromDate(null);
-    setToDate(null);
-    onFilterChange({ from: null, to: null });
-  };
-
-  const isFiltersActive = fromDate || toDate;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button 
-          variant={isFiltersActive ? "default" : "outline"} 
+          variant={areFiltersActive ? "default" : "outline"} 
           size="sm" 
-          className={cn("h-8", isFiltersActive ? "bg-primary text-white" : "")}
+          className={cn("h-8", areFiltersActive ? "bg-primary text-white" : "")}
         >
           <FilterIcon className="h-4 w-4 mr-2" />
-          {isFiltersActive ? "Filters Active" : "Filter"}
+          {areFiltersActive ? "Filters Active" : "Filter"}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-4" align="end">
@@ -59,19 +50,20 @@ const FeedbackFilter = ({ onFilterChange }: FeedbackFilterProps) => {
                       variant="outline"
                       className={cn(
                         "justify-start text-left font-normal",
-                        !fromDate && "text-muted-foreground"
+                        !filters.dateRange.from && "text-muted-foreground"
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {fromDate ? format(fromDate, "PP") : "Pick a date"}
+                      {filters.dateRange.from ? format(filters.dateRange.from, "PP") : "Pick a date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={fromDate || undefined}
+                      selected={filters.dateRange.from || undefined}
                       onSelect={handleFromDateChange}
                       initialFocus
+                      className="p-3 pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
@@ -84,19 +76,20 @@ const FeedbackFilter = ({ onFilterChange }: FeedbackFilterProps) => {
                       variant="outline"
                       className={cn(
                         "justify-start text-left font-normal",
-                        !toDate && "text-muted-foreground"
+                        !filters.dateRange.to && "text-muted-foreground"
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {toDate ? format(toDate, "PP") : "Pick a date"}
+                      {filters.dateRange.to ? format(filters.dateRange.to, "PP") : "Pick a date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={toDate || undefined}
+                      selected={filters.dateRange.to || undefined}
                       onSelect={handleToDateChange}
                       initialFocus
+                      className="p-3 pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
