@@ -104,27 +104,43 @@ export const markFeedbackAsReplied = async (id: number) => {
   }
 };
 
-export const markFeedbackAsSolved = async (id: number, solved: boolean = true) => {
+// Completely rebuilt function for toggling solved status
+export const toggleFeedbackSolvedStatus = async (id: number, currentStatus: boolean) => {
+  // New solved state is the opposite of current state
+  const newSolvedState = !currentStatus;
+  
   try {
-    console.log(`Setting feedback #${id} solved status to: ${solved}`);
+    // Show toast while operation is in progress
+    toast.loading(newSolvedState ? 'Marking as solved...' : 'Removing solved status...');
     
-    const { data, error } = await supabase
+    console.log(`Toggling feedback #${id} solved status from ${currentStatus} to ${newSolvedState}`);
+    
+    // Update both the Solved flag and the Status field
+    const { error } = await supabase
       .from('SFS Jun PM Feedback')
       .update({ 
-        Solved: solved, 
-        Status: solved ? 'Solved' : 'Unread' 
+        Solved: newSolvedState, 
+        Status: newSolvedState ? 'Solved' : 'Unread' 
       })
       .eq('UUID_Number', id);
     
     if (error) {
       console.error('Supabase error:', error);
-      throw error;
+      toast.dismiss();
+      toast.error('Failed to update status');
+      return false;
     }
     
-    console.log(`Successfully updated feedback #${id}`, data);
+    // Dismiss loading toast and show success toast
+    toast.dismiss();
+    toast.success(newSolvedState ? 'Marked as solved!' : 'Removed solved status');
+    console.log(`Successfully updated feedback #${id} solved status to ${newSolvedState}`);
+    
     return true;
   } catch (error) {
     console.error('Error updating solved status:', error);
+    toast.dismiss();
+    toast.error('Something went wrong');
     return false;
   }
 };

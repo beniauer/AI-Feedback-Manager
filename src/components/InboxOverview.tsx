@@ -5,6 +5,7 @@ import { useUnreadCount, useSolvedCount, useRepliedCount } from '@/hooks/useFeed
 import { Inbox, CheckCircle, MessageCircle, AlertCircle } from 'lucide-react';
 
 const InboxOverview = () => {
+  // These hooks will automatically re-render when data changes
   const unreadCount = useUnreadCount();
   const solvedCount = useSolvedCount();
   const repliedCount = useRepliedCount();

@@ -1,13 +1,12 @@
 
 import React from 'react';
 import { FeedbackItem } from '@/types/feedback';
-import { formatDate, getTypeColor, markFeedbackAsSolved } from '@/utils/feedbackUtils';
+import { formatDate, getTypeColor, toggleFeedbackSolvedStatus } from '@/utils/feedbackUtils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, ExternalLink, CheckSquare, Square } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 
 interface FeedbackEntryItemProps {
   feedback: FeedbackItem;
@@ -24,7 +23,7 @@ const FeedbackEntryItem = ({
 }: FeedbackEntryItemProps) => {
   const queryClient = useQueryClient();
   
-  // Determine if there is a priority badge (could be extracted from tags or added to DB)
+  // Determine if there is a priority badge
   const getPriorityBadge = () => {
     const tags = feedback.Tags?.toLowerCase() || '';
     if (tags.includes('high priority')) {
@@ -37,35 +36,20 @@ const FeedbackEntryItem = ({
     return null;
   };
 
+  // Rebuilt handler for toggling solved status
   const handleSolvedToggle = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent any parent event handlers from firing
-    e.stopPropagation(); // Stop event propagation
+    e.preventDefault();
+    e.stopPropagation();
     
-    try {
-      // Toggle the current solved state
-      const newSolvedState = !feedback.Solved;
-      
-      // Show loading toast
-      const toastId = toast.loading(newSolvedState ? 'Marking as solved...' : 'Removing solved status...');
-      
-      console.log('Toggle solved state for feedback:', feedback.UUID_Number, 'to:', newSolvedState);
-      
-      // Call the API to update the solved status
-      const success = await markFeedbackAsSolved(feedback.UUID_Number, newSolvedState);
-      
-      if (success) {
-        console.log('Update successful, invalidating queries');
-        // Invalidate the feedback query to refresh data
-        await queryClient.invalidateQueries({ queryKey: ['feedback'] });
-        toast.dismiss(toastId);
-        toast.success(newSolvedState ? 'Marked as solved!' : 'Removed solved status');
-      } else {
-        toast.dismiss(toastId);
-        toast.error('Failed to update status');
-      }
-    } catch (error) {
-      console.error('Error toggling solved status:', error);
-      toast.error('Something went wrong');
+    console.log('Toggle solved button clicked for feedback:', feedback.UUID_Number);
+    
+    // Call the API to update the solved status
+    const success = await toggleFeedbackSolvedStatus(feedback.UUID_Number, !!feedback.Solved);
+    
+    if (success) {
+      console.log('Successfully toggled solved status, invalidating queries');
+      // Force refresh all feedback data
+      await queryClient.invalidateQueries({ queryKey: ['feedback'] });
     }
   };
   
@@ -90,10 +74,11 @@ const FeedbackEntryItem = ({
           </div>
           <div className="flex items-center gap-2">
             <Button 
+              type="button"
               variant={feedback.Solved ? "outline" : "destructive"}
               size="sm" 
               className={cn(
-                "flex items-center gap-1",
+                "flex items-center gap-1 whitespace-nowrap",
                 feedback.Solved ? "border-green-500 text-green-600" : ""
               )}
               onClick={handleSolvedToggle}
@@ -110,7 +95,12 @@ const FeedbackEntryItem = ({
                 </>
               )}
             </Button>
-            <Button variant="ghost" size="sm" onClick={onToggleExpand}>
+            <Button 
+              type="button"
+              variant="ghost" 
+              size="sm" 
+              onClick={onToggleExpand}
+            >
               {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
           </div>

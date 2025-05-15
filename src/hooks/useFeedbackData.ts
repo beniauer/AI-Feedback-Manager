@@ -7,10 +7,12 @@ import { useEffect } from 'react';
 export function useFeedbackData() {
   const queryClient = useQueryClient();
   
-  // Set up real-time subscription
+  // Set up real-time subscription with improved error handling
   useEffect(() => {
+    console.log('Setting up real-time subscription to feedback table');
+    
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel('feedback-updates')
       .on(
         'postgres_changes',
         {
@@ -20,10 +22,13 @@ export function useFeedbackData() {
         },
         (payload) => {
           console.log('Real-time update received:', payload);
+          // Immediately invalidate the feedback query to refresh data
           queryClient.invalidateQueries({ queryKey: ['feedback'] });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
       
     console.log('Real-time channel subscription initialized');
       
@@ -68,8 +73,9 @@ export function useFeedbackData() {
       // Sort by UUID_Number (descending) to show the newest items first
       return mappedData.sort((a, b) => b.UUID_Number - a.UUID_Number);
     },
-    staleTime: 0, // Always fetch fresh data
-    refetchOnWindowFocus: true
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always treat data as stale to ensure fresh data
+    refetchInterval: 10000, // Refetch every 10 seconds as a fallback
   });
 }
 
