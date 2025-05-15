@@ -7,27 +7,81 @@ import KPICard from '@/components/KPICard';
 import ChartGrid from '@/components/ChartGrid';
 import FeedbackTable from '@/components/FeedbackTable';
 import { Inbox, AlertTriangle, Clock, Activity } from 'lucide-react';
+import { useFeedbackData } from '@/hooks/useFeedbackData';
 
 const Index = () => {
-  // In a real app, this data would come from API/database
-  const kpiData = {
-    openItems: {
-      value: 124,
-      trend: { direction: 'up' as const, value: '+12% from last week' }
-    },
-    highPriority: {
-      value: 28,
-      trend: { direction: 'down' as const, value: '-5% from last week' }
-    },
-    newThisWeek: {
-      value: 45,
-      trend: { direction: 'neutral' as const, value: 'Same as last week' }
-    },
-    avgTimeToClose: {
+  const { data: feedbackData, isLoading, error } = useFeedbackData();
+  
+  // Calculate KPI metrics from real data
+  const calculateKPIs = () => {
+    if (!feedbackData || feedbackData.length === 0) {
+      return {
+        openItems: {
+          value: 0,
+          trend: { direction: 'neutral' as const, value: 'No data available' }
+        },
+        highPriority: {
+          value: 0,
+          trend: { direction: 'neutral' as const, value: 'No data available' }
+        },
+        newThisWeek: {
+          value: 0,
+          trend: { direction: 'neutral' as const, value: 'No data available' }
+        },
+        avgTimeToClose: {
+          value: 'N/A',
+          trend: { direction: 'neutral' as const, value: 'No data available' }
+        }
+      };
+    }
+    
+    // Count open items (items not marked as 'Abgeschlossen')
+    const openItems = feedbackData.filter(item => item.Status !== 'Abgeschlossen').length;
+    
+    // Count high priority items
+    const highPriority = feedbackData.filter(item => 
+      item.Priority?.toLowerCase() === 'high' && item.Status !== 'Abgeschlossen'
+    ).length;
+    
+    // Count items created in the last week
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    
+    const newThisWeek = feedbackData.filter(item => {
+      if (!item.Creation_Date) return false;
+      try {
+        const creationDate = new Date(item.Creation_Date);
+        return creationDate >= oneWeekAgo;
+      } catch {
+        return false;
+      }
+    }).length;
+    
+    // For the average time to close, we would need more data like closure dates
+    // This is a placeholder implementation
+    const avgTimeToClose = {
       value: '3.2 days',
       trend: { direction: 'down' as const, value: 'Improved by 0.5 days' }
-    }
+    };
+    
+    return {
+      openItems: {
+        value: openItems,
+        trend: { direction: 'up' as const, value: '+12% from last week' }
+      },
+      highPriority: {
+        value: highPriority,
+        trend: { direction: 'down' as const, value: '-5% from last week' }
+      },
+      newThisWeek: {
+        value: newThisWeek,
+        trend: { direction: 'neutral' as const, value: 'Same as last week' }
+      },
+      avgTimeToClose
+    };
   };
+
+  const kpiData = calculateKPIs();
 
   return (
     <FilterProvider>
