@@ -23,10 +23,10 @@ import { useFilterContext, FilterState } from '@/context/FilterContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const mockOptions = {
-  products: ['Web App', 'Mobile App', 'Desktop App', 'API'],
-  markets: ['EMEA', 'NA', 'APAC', 'LATAM'],
+  products: ['PowerFast XL-5', 'DrillMaster Pro', 'DigiLevel 2000', 'UltraAnchor Max', 'SpeedRivet 500'],
+  markets: ['ConstructCorp', 'BuildRight Inc', 'PrecisionBuilders', 'Skyscraper Solutions', 'MetalWorks Manufacturing'],
   priorities: ['Low', 'Medium', 'High'],
-  types: ['Problem', 'Feature Request', 'Price', 'Competition'],
+  types: ['Bug', 'Feature Request', 'UX Issue', 'Performance', 'Documentation'],
   statuses: ['Inbox', 'Analyse', 'Abgeschlossen']
 };
 
@@ -90,173 +90,147 @@ const Sidebar: React.FC = () => {
   return (
     <div className="relative h-full">
       <div className={cn(
-        "absolute top-0 left-0 h-[calc(100vh-4rem)] bg-background border-r w-72 transition-all duration-300 z-20",
+        "absolute top-0 left-0 h-[calc(100vh-4rem)] bg-white border-r w-72 transition-all duration-300 z-20",
         isOpen ? "translate-x-0" : "-translate-x-72"
       )}>
         <div className="flex flex-col h-full">
           <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold">Filters</h2>
+            <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
           </div>
-          <div className="p-4 overflow-y-auto flex-1 filter-panel">
+          <div className="p-4 overflow-y-auto flex-1 filter-panel space-y-6">
             {/* Product Filter */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Products</label>
-              <div className="space-y-2">
-                {mockOptions.products.map(product => (
-                  <div key={product} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`product-${product}`}
-                      className="mr-2"
-                      checked={filters.products.includes(product)}
-                      onChange={() => handleMultiSelectChange('products', product, filters.products)}
-                    />
-                    <label htmlFor={`product-${product}`} className="text-sm">{product}</label>
-                  </div>
-                ))}
-              </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Product</label>
+              <Select 
+                onValueChange={(value) => setFilters(prev => ({
+                  ...prev,
+                  products: value === 'all' ? [] : [value]
+                }))}
+                value={filters.products.length === 0 ? 'all' : filters.products[0]}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All Products" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Products</SelectItem>
+                  {mockOptions.products.map(product => (
+                    <SelectItem key={product} value={product}>
+                      {product}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Market Filter */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Markets</label>
-              <div className="space-y-2">
-                {mockOptions.markets.map(market => (
-                  <div key={market} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`market-${market}`}
-                      className="mr-2"
-                      checked={filters.markets.includes(market)}
-                      onChange={() => handleMultiSelectChange('markets', market, filters.markets)}
-                    />
-                    <label htmlFor={`market-${market}`} className="text-sm">{market}</label>
-                  </div>
-                ))}
-              </div>
+            {/* Category Filter (was Type) */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Category</label>
+              <Select 
+                onValueChange={(value) => setFilters(prev => ({
+                  ...prev,
+                  types: value === 'all' ? [] : [value]
+                }))}
+                value={filters.types.length === 0 ? 'all' : filters.types[0]}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {mockOptions.types.map(type => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Priority Filter */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Priority</label>
-              <div className="space-y-2">
-                {mockOptions.priorities.map(priority => (
-                  <div key={priority} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`priority-${priority}`}
-                      className="mr-2"
-                      checked={filters.priorities.includes(priority)}
-                      onChange={() => handleMultiSelectChange('priorities', priority, filters.priorities)}
-                    />
-                    <label htmlFor={`priority-${priority}`} className="text-sm">{priority}</label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Type Filter */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Type</label>
-              <div className="space-y-2">
-                {mockOptions.types.map(type => (
-                  <div key={type} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`type-${type}`}
-                      className="mr-2"
-                      checked={filters.types.includes(type)}
-                      onChange={() => handleMultiSelectChange('types', type, filters.types)}
-                    />
-                    <label htmlFor={`type-${type}`} className="text-sm">{type}</label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Status Filter */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Status</label>
-              <div className="space-y-2">
-                {mockOptions.statuses.map(status => (
-                  <div key={status} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`status-${status}`}
-                      className="mr-2"
-                      checked={filters.statuses.includes(status)}
-                      onChange={() => handleMultiSelectChange('statuses', status, filters.statuses)}
-                    />
-                    <label htmlFor={`status-${status}`} className="text-sm">{status}</label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Tags Filter */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Tags</label>
-              <div className="flex space-x-2 mb-2">
-                <Input
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  placeholder="Add tag"
-                  className="flex-1"
-                  onKeyDown={(e) => e.key === 'Enter' && handleTagAdd()}
-                />
-                <Button onClick={handleTagAdd} size="sm">Add</Button>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {filters.tags.map(tag => (
-                  <Badge key={tag} variant="outline" className="flex items-center gap-1">
-                    {tag}
-                    <X 
-                      className="h-3 w-3 cursor-pointer" 
-                      onClick={() => handleTagRemove(tag)} 
-                    />
-                  </Badge>
-                ))}
-              </div>
+            {/* Customer Filter (was Market) */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Customer</label>
+              <Select 
+                onValueChange={(value) => setFilters(prev => ({
+                  ...prev,
+                  markets: value === 'all' ? [] : [value]
+                }))}
+                value={filters.markets.length === 0 ? 'all' : filters.markets[0]}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All Customers" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Customers</SelectItem>
+                  {mockOptions.markets.map(market => (
+                    <SelectItem key={market} value={market}>
+                      {market}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Date Range Filter */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Date Range</label>
-              <div className="grid gap-2">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Date Range</label>
+              <div className="grid grid-cols-2 gap-2">
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
-                      variant={"outline"}
-                      className="justify-start text-left font-normal"
+                      variant="outline"
+                      className="justify-start text-left font-normal bg-white border-gray-300 text-gray-800"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {filters.dateRange.from ? (
-                        filters.dateRange.to ? (
-                          <>
-                            {format(filters.dateRange.from, "LLL dd, y")} -{" "}
-                            {format(filters.dateRange.to, "LLL dd, y")}
-                          </>
-                        ) : (
-                          format(filters.dateRange.from, "LLL dd, y")
-                        )
+                        format(filters.dateRange.from, "MMM dd, yyyy")
                       ) : (
-                        <span>Pick a date</span>
+                        <span>From</span>
                       )}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
-                      mode="range"
-                      selected={{
-                        from: filters.dateRange.from,
-                        to: filters.dateRange.to,
-                      }}
-                      onSelect={(range) => 
+                      mode="single"
+                      selected={filters.dateRange.from}
+                      onSelect={(date) => 
                         setFilters(prev => ({
                           ...prev,
                           dateRange: {
-                            from: range?.from || prev.dateRange.from,
-                            to: range?.to || prev.dateRange.to,
+                            ...prev.dateRange,
+                            from: date || prev.dateRange.from,
+                          }
+                        }))
+                      }
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+                
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="justify-start text-left font-normal bg-white border-gray-300 text-gray-800"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {filters.dateRange.to ? (
+                        format(filters.dateRange.to, "MMM dd, yyyy")
+                      ) : (
+                        <span>To</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={filters.dateRange.to}
+                      onSelect={(date) => 
+                        setFilters(prev => ({
+                          ...prev,
+                          dateRange: {
+                            ...prev.dateRange,
+                            to: date || prev.dateRange.to,
                           }
                         }))
                       }
@@ -267,16 +241,16 @@ const Sidebar: React.FC = () => {
                 </Popover>
               </div>
             </div>
-          </div>
 
-          <div className="p-4 border-t">
-            <Button 
-              onClick={clearFilters} 
-              variant="outline" 
-              className="w-full"
-            >
-              Clear All Filters
-            </Button>
+            <div className="pt-4">
+              <Button 
+                onClick={clearFilters} 
+                variant="outline" 
+                className="w-full"
+              >
+                Clear All Filters
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -286,7 +260,7 @@ const Sidebar: React.FC = () => {
         variant="outline"
         size="icon"
         className={cn(
-          "absolute top-4 h-8 w-8 rounded-full bg-background shadow-md z-20",
+          "absolute top-4 h-8 w-8 rounded-full bg-white shadow-md z-20",
           isOpen ? "left-72 -translate-x-1/2" : "left-0 translate-x-1/2"
         )}
         onClick={toggleSidebar}
