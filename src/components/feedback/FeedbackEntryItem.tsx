@@ -37,7 +37,10 @@ const FeedbackEntryItem = ({
     return null;
   };
 
-  const handleSolvedToggle = async () => {
+  const handleSolvedToggle = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent any parent event handlers from firing
+    e.stopPropagation(); // Stop event propagation
+    
     try {
       // Toggle the current solved state
       const newSolvedState = !feedback.Solved;

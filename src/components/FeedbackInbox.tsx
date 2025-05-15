@@ -159,8 +159,8 @@ const FeedbackInbox = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="overview">
-            <TabsList className="mb-4 w-full">
-              <TabsTrigger value="overview" className="flex items-center gap-1">
+            <TabsList className="mb-4 w-full bg-white">
+              <TabsTrigger value="overview" className="flex items-center gap-1 text-black data-[state=active]:text-black data-[state=inactive]:text-gray-500">
                 <PieChart className="h-4 w-4" />
                 All Feedback
               </TabsTrigger>
@@ -169,7 +169,7 @@ const FeedbackInbox = () => {
                   key={product} 
                   value={product} 
                   onClick={() => setSelectedProduct(product)}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 text-black data-[state=active]:text-black data-[state=inactive]:text-gray-500"
                 >
                   {product}
                 </TabsTrigger>
