@@ -8,14 +8,14 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon, Filter } from 'lucide-react';
 import { format } from 'date-fns';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useFeedbackData } from '@/hooks/useFeedbackData';
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
-  const { isMobile } = useMobile();
+  const isMobile = useIsMobile();
   const { data: feedbackData } = useFeedbackData();
   
   // Extract unique products and types
