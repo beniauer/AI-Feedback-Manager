@@ -1,7 +1,7 @@
 
 import React from 'react';
 import {
-  PieChart as RechartsPieChart,
+  PieChart,
   Pie,
   Cell,
   Tooltip,
@@ -16,53 +16,67 @@ interface FeedbackTypesByProductChartProps {
 
 const FeedbackTypesByProductChart = ({ productName }: FeedbackTypesByProductChartProps) => {
   const { data: feedbackData } = useFeedbackData();
-  
-  // Process data for the chart
+
   const chartData = React.useMemo(() => {
     if (!feedbackData || feedbackData.length === 0) {
       // Sample data
       return [
-        { name: 'Bug', value: 5, color: '#6050DC' },
-        { name: 'Feature', value: 7, color: '#D52DB7' },
-        { name: 'Question', value: 3, color: '#FF6B45' },
-        { name: 'Other', value: 2, color: '#FFAB05' }
+        { name: 'Complaint', value: 2 },
+        { name: 'Suggestion', value: 3 },
+        { name: 'Problem', value: 1 },
+        { name: 'Feature Request', value: 4 },
+        { name: 'Price', value: 2 },
+        { name: 'Competition', value: 1 }
       ];
     }
-    
+
     // Filter by product if specified
-    const filteredData = productName 
-      ? feedbackData.filter(item => item.Product_Name === productName)
-      : feedbackData;
-    
-    // Group feedbacks by type
-    const grouped = filteredData.reduce((acc, item) => {
-      const type = item.Type || 'Uncategorized';
+    let filteredData = feedbackData;
+    if (productName) {
+      filteredData = feedbackData.filter(
+        (item) => item.Product_Name === productName
+      );
+    }
+
+    // Group by feedback type
+    const groupedByType = filteredData.reduce((acc, item) => {
+      const type = item.Type || 'Unknown';
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    
-    // Map to chart data format with colors
-    return Object.entries(grouped).map(([name, value]) => {
-      let color;
-      switch (name.toLowerCase()) {
-        case 'complaint': color = '#6050DC'; break;
-        case 'suggestion': color = '#D52DB7'; break;
-        case 'praise': color = '#FF2E7E'; break;
-        case 'question': color = '#FF6B45'; break;
-        case 'price': color = '#FFAB05'; break;
-        case 'competitor': color = '#FFF79C'; break;
-        case 'bug': color = '#6050DC'; break;
-        case 'feature request': color = '#D52DB7'; break;
-        default: color = '#a1a1aa'; break;
-      }
-      
-      return { name, value, color };
-    });
+
+    return Object.entries(groupedByType).map(([name, value]) => ({
+      name,
+      value,
+    }));
   }, [feedbackData, productName]);
+
+  // Use the specified color palette
+  const COLOR_MAP: Record<string, string> = {
+    'complaint': '#6050DC',
+    'suggestion': '#D52DB7',
+    'problem': '#FF2E7E',
+    'feature request': '#FF6B45',
+    'price': '#FFAB05',
+    'competition': '#FFF79C',
+    // Fallback colors for other types
+    'bug': '#6050DC',
+    'ux issue': '#FF2E7E',
+    'performance': '#FF6B45',
+    'documentation': '#FFAB05',
+  };
+  
+  // Default colors for types not in the map
+  const DEFAULT_COLORS = ['#6050DC', '#D52DB7', '#FF2E7E', '#FF6B45', '#FFAB05', '#FFF79C'];
+
+  const getColorForType = (type: string): string => {
+    const normalizedType = type.toLowerCase();
+    return COLOR_MAP[normalizedType] || DEFAULT_COLORS[chartData.findIndex(item => item.name.toLowerCase() === normalizedType) % DEFAULT_COLORS.length];
+  };
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <RechartsPieChart>
+      <PieChart>
         <Pie
           data={chartData}
           cx="50%"
@@ -74,12 +88,12 @@ const FeedbackTypesByProductChart = ({ productName }: FeedbackTypesByProductChar
           label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
         >
           {chartData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.color} />
+            <Cell key={`cell-${index}`} fill={getColorForType(entry.name)} />
           ))}
         </Pie>
         <Tooltip />
         <Legend />
-      </RechartsPieChart>
+      </PieChart>
     </ResponsiveContainer>
   );
 };

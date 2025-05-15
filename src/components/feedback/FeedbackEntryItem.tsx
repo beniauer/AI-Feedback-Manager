@@ -4,8 +4,7 @@ import { FeedbackItem } from '@/types/feedback';
 import { formatDate, getTypeColor, markFeedbackAsSolved } from '@/utils/feedbackUtils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronUp, ExternalLink, CheckSquare, Square } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -37,9 +36,10 @@ const FeedbackEntryItem = ({
     return null;
   };
 
-  const handleSolvedChange = async (checked: boolean) => {
-    // Call the markFeedbackAsSolved function to update the database
-    const success = await markFeedbackAsSolved(feedback.UUID_Number, checked);
+  const handleSolvedToggle = async () => {
+    // Toggle the current solved state
+    const newSolvedState = !feedback.Solved;
+    const success = await markFeedbackAsSolved(feedback.UUID_Number, newSolvedState);
     
     if (success) {
       // Invalidate the feedback query to refresh data
@@ -67,16 +67,21 @@ const FeedbackEntryItem = ({
             </h3>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id={`solved-${feedback.UUID_Number}`}
-                checked={feedback.Solved || false}
-                onCheckedChange={handleSolvedChange}
-              />
-              <label htmlFor={`solved-${feedback.UUID_Number}`} className="text-sm text-muted-foreground">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-1 text-sm"
+              onClick={handleSolvedToggle}
+            >
+              {feedback.Solved ? (
+                <CheckSquare className="h-4 w-4 text-green-600" />
+              ) : (
+                <Square className="h-4 w-4" />
+              )}
+              <span className="text-muted-foreground">
                 {feedback.Solved ? 'Solved' : 'Mark as solved'}
-              </label>
-            </div>
+              </span>
+            </Button>
             <Button variant="ghost" size="sm" onClick={onToggleExpand}>
               {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>

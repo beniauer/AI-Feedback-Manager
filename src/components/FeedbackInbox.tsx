@@ -159,7 +159,7 @@ const FeedbackInbox = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="overview">
-            <TabsList className="mb-4">
+            <TabsList className="mb-4 w-full">
               <TabsTrigger value="overview" className="flex items-center gap-1">
                 <PieChart className="h-4 w-4" />
                 All Feedback
