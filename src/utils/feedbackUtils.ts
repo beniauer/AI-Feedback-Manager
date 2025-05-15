@@ -104,43 +104,45 @@ export const markFeedbackAsReplied = async (id: number) => {
   }
 };
 
-// Completely rebuilt function for toggling solved status
+// Completely rebuilt function with better error handling and UI feedback
 export const toggleFeedbackSolvedStatus = async (id: number, currentStatus: boolean) => {
-  // New solved state is the opposite of current state
-  const newSolvedState = !currentStatus;
+  // Show immediate loading toast for better UX
+  const toastId = toast.loading(currentStatus ? 'Removing solved status...' : 'Marking as solved...');
   
   try {
-    // Show toast while operation is in progress
-    toast.loading(newSolvedState ? 'Marking as solved...' : 'Removing solved status...');
+    console.log(`Toggling feedback #${id} solved status from ${currentStatus} to ${!currentStatus}`);
     
-    console.log(`Toggling feedback #${id} solved status from ${currentStatus} to ${newSolvedState}`);
+    // Define the new state (opposite of current)
+    const newSolvedState = !currentStatus;
     
-    // Update both the Solved flag and the Status field
+    // Make the update to Supabase
     const { error } = await supabase
       .from('SFS Jun PM Feedback')
       .update({ 
         Solved: newSolvedState, 
-        Status: newSolvedState ? 'Solved' : 'Unread' 
+        Status: newSolvedState ? 'Solved' : 'Read' 
       })
       .eq('UUID_Number', id);
     
+    // Check for errors
     if (error) {
-      console.error('Supabase error:', error);
-      toast.dismiss();
-      toast.error('Failed to update status');
+      console.error('Supabase update error:', error);
+      toast.error('Failed to update solved status', { id: toastId });
       return false;
     }
     
     // Dismiss loading toast and show success toast
-    toast.dismiss();
-    toast.success(newSolvedState ? 'Marked as solved!' : 'Removed solved status');
-    console.log(`Successfully updated feedback #${id} solved status to ${newSolvedState}`);
+    toast.success(
+      newSolvedState ? 'Marked as solved!' : 'Removed solved status', 
+      { id: toastId }
+    );
     
+    console.log(`Successfully updated feedback #${id} solved status to ${newSolvedState}`);
     return true;
   } catch (error) {
-    console.error('Error updating solved status:', error);
-    toast.dismiss();
-    toast.error('Something went wrong');
+    // Handle any unexpected errors
+    console.error('Unexpected error in toggleFeedbackSolvedStatus:', error);
+    toast.error('Something went wrong', { id: toastId });
     return false;
   }
 };

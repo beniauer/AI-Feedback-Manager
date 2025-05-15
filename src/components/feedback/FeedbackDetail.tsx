@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MessageCircle, CheckCircle } from 'lucide-react';
 import { FeedbackItem } from '@/types/feedback';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   getStatusColor,
   getTypeColor,
@@ -31,16 +32,44 @@ interface FeedbackDetailProps {
 }
 
 const FeedbackDetail = ({ feedback }: FeedbackDetailProps) => {
+  const queryClient = useQueryClient();
+  const [isSolved, setIsSolved] = React.useState(!!feedback.Solved);
+  
+  React.useEffect(() => {
+    // Update local state when feedback prop changes
+    setIsSolved(!!feedback.Solved);
+  }, [feedback.Solved]);
+  
   const handleStatusChange = async (value: string) => {
-    await updateFeedbackStatus(feedback.UUID_Number, value);
+    const success = await updateFeedbackStatus(feedback.UUID_Number, value);
+    if (success) {
+      queryClient.invalidateQueries({ queryKey: ['feedback'] });
+    }
   };
 
   const handleMarkAsReplied = async () => {
-    await markFeedbackAsReplied(feedback.UUID_Number);
+    const success = await markFeedbackAsReplied(feedback.UUID_Number);
+    if (success) {
+      queryClient.invalidateQueries({ queryKey: ['feedback'] });
+    }
   };
 
   const handleMarkAsSolved = async () => {
-    await toggleFeedbackSolvedStatus(feedback.UUID_Number, !!feedback.Solved);
+    console.log('Mark as solved clicked, current status:', isSolved);
+    
+    // Optimistically update UI
+    setIsSolved(!isSolved);
+    
+    // Call API to update database
+    const success = await toggleFeedbackSolvedStatus(feedback.UUID_Number, isSolved);
+    
+    if (success) {
+      // Refresh data from server
+      queryClient.invalidateQueries({ queryKey: ['feedback'] });
+    } else {
+      // Revert UI if failed
+      setIsSolved(isSolved);
+    }
   };
 
   return (
@@ -122,18 +151,18 @@ const FeedbackDetail = ({ feedback }: FeedbackDetailProps) => {
           variant="outline"
           onClick={handleMarkAsReplied}
           disabled={feedback.Replied}
+          type="button"
         >
           <MessageCircle className="h-4 w-4 mr-2" />
           Mark as Replied
         </Button>
         <Button 
-          className="flex-1 bg-[#ff0105] hover:bg-[#dd0104]" 
+          className={isSolved ? "flex-1 bg-green-600 hover:bg-green-700" : "flex-1 bg-[#ff0105] hover:bg-[#dd0104]"}
           onClick={handleMarkAsSolved}
-          disabled={feedback.Solved}
           type="button"
         >
           <CheckCircle className="h-4 w-4 mr-2" />
-          Mark as Solved
+          {isSolved ? "Solved" : "Mark as Solved"}
         </Button>
       </SheetFooter>
     </>

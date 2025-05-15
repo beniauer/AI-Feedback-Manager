@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FeedbackItem } from '@/types/feedback';
 import { formatDate, getTypeColor, toggleFeedbackSolvedStatus } from '@/utils/feedbackUtils';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +21,12 @@ const FeedbackEntryItem = ({
   onSelect 
 }: FeedbackEntryItemProps) => {
   const queryClient = useQueryClient();
+  const [isSolved, setIsSolved] = useState(!!feedback.Solved);
+  
+  // Keep local state in sync with props
+  useEffect(() => {
+    setIsSolved(!!feedback.Solved);
+  }, [feedback.Solved]);
   
   // Determine if there is a priority badge
   const getPriorityBadge = () => {
@@ -36,27 +41,33 @@ const FeedbackEntryItem = ({
     return null;
   };
 
-  // Rebuilt handler for toggling solved status
+  // Handler for toggling solved status
   const handleSolvedToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     console.log('Toggle solved button clicked for feedback:', feedback.UUID_Number);
     
+    // Optimistically update the UI
+    setIsSolved(!isSolved);
+    
     // Call the API to update the solved status
-    const success = await toggleFeedbackSolvedStatus(feedback.UUID_Number, !!feedback.Solved);
+    const success = await toggleFeedbackSolvedStatus(feedback.UUID_Number, isSolved);
     
     if (success) {
       console.log('Successfully toggled solved status, invalidating queries');
       // Force refresh all feedback data
-      await queryClient.invalidateQueries({ queryKey: ['feedback'] });
+      queryClient.invalidateQueries({ queryKey: ['feedback'] });
+    } else {
+      // Revert UI if the API call failed
+      setIsSolved(isSolved);
     }
   };
   
   return (
     <div className={cn(
       "border-b last:border-0",
-      feedback.Solved ? 'bg-gray-50' : feedback.Status === 'Unread' ? 'bg-blue-50' : ''
+      isSolved ? 'bg-gray-50' : feedback.Status === 'Unread' ? 'bg-blue-50' : ''
     )}>
       <div className="p-4">
         <div className="flex items-start justify-between">
@@ -75,15 +86,15 @@ const FeedbackEntryItem = ({
           <div className="flex items-center gap-2">
             <Button 
               type="button"
-              variant={feedback.Solved ? "outline" : "destructive"}
+              variant={isSolved ? "outline" : "destructive"}
               size="sm" 
               className={cn(
                 "flex items-center gap-1 whitespace-nowrap",
-                feedback.Solved ? "border-green-500 text-green-600" : ""
+                isSolved ? "border-green-500 text-green-600" : ""
               )}
               onClick={handleSolvedToggle}
             >
-              {feedback.Solved ? (
+              {isSolved ? (
                 <>
                   <CheckSquare className="h-4 w-4" />
                   <span>Solved</span>
