@@ -108,7 +108,7 @@ export const markFeedbackAsSolved = async (id: number, solved: boolean = true) =
   try {
     console.log(`Setting feedback #${id} solved status to: ${solved}`);
     
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('SFS Jun PM Feedback')
       .update({ 
         Solved: solved, 
@@ -121,7 +121,7 @@ export const markFeedbackAsSolved = async (id: number, solved: boolean = true) =
       throw error;
     }
     
-    console.log(`Successfully updated feedback #${id}`);
+    console.log(`Successfully updated feedback #${id}`, data);
     return true;
   } catch (error) {
     console.error('Error updating solved status:', error);

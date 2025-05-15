@@ -97,7 +97,6 @@ const FeedbackEntryItem = ({
                 feedback.Solved ? "border-green-500 text-green-600" : ""
               )}
               onClick={handleSolvedToggle}
-              type="button"
             >
               {feedback.Solved ? (
                 <>
