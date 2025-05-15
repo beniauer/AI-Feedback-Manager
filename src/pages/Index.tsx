@@ -13,19 +13,19 @@ const Index = () => {
   const kpiData = {
     openItems: {
       value: 124,
-      trend: { direction: 'up', value: '+12% from last week' }
+      trend: { direction: 'up' as const, value: '+12% from last week' }
     },
     highPriority: {
       value: 28,
-      trend: { direction: 'down', value: '-5% from last week' }
+      trend: { direction: 'down' as const, value: '-5% from last week' }
     },
     newThisWeek: {
       value: 45,
-      trend: { direction: 'neutral', value: 'Same as last week' }
+      trend: { direction: 'neutral' as const, value: 'Same as last week' }
     },
     avgTimeToClose: {
       value: '3.2 days',
-      trend: { direction: 'down', value: 'Improved by 0.5 days' }
+      trend: { direction: 'down' as const, value: 'Improved by 0.5 days' }
     }
   };
 
