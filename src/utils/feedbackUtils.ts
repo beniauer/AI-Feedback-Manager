@@ -1,3 +1,4 @@
+
 import { FeedbackItem, FeedbackStatus } from '@/types/feedback';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -105,13 +106,22 @@ export const markFeedbackAsReplied = async (id: number) => {
 
 export const markFeedbackAsSolved = async (id: number, solved: boolean = true) => {
   try {
+    console.log(`Setting feedback #${id} solved status to: ${solved}`);
+    
     const { error } = await supabase
       .from('SFS Jun PM Feedback')
-      .update({ Solved: solved, Status: solved ? 'Solved' : 'Unread' })
+      .update({ 
+        Solved: solved, 
+        Status: solved ? 'Solved' : 'Unread' 
+      })
       .eq('UUID_Number', id);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error:', error);
+      throw error;
+    }
     
+    console.log(`Successfully updated feedback #${id}`);
     return true;
   } catch (error) {
     console.error('Error updating solved status:', error);

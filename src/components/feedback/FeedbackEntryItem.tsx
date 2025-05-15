@@ -43,16 +43,21 @@ const FeedbackEntryItem = ({
       const newSolvedState = !feedback.Solved;
       
       // Show loading toast
-      toast.loading(newSolvedState ? 'Marking as solved...' : 'Removing solved status...');
+      const toastId = toast.loading(newSolvedState ? 'Marking as solved...' : 'Removing solved status...');
+      
+      console.log('Toggle solved state for feedback:', feedback.UUID_Number, 'to:', newSolvedState);
       
       // Call the API to update the solved status
       const success = await markFeedbackAsSolved(feedback.UUID_Number, newSolvedState);
       
       if (success) {
+        console.log('Update successful, invalidating queries');
         // Invalidate the feedback query to refresh data
-        queryClient.invalidateQueries({ queryKey: ['feedback'] });
+        await queryClient.invalidateQueries({ queryKey: ['feedback'] });
+        toast.dismiss(toastId);
         toast.success(newSolvedState ? 'Marked as solved!' : 'Removed solved status');
       } else {
+        toast.dismiss(toastId);
         toast.error('Failed to update status');
       }
     } catch (error) {
@@ -89,6 +94,7 @@ const FeedbackEntryItem = ({
                 feedback.Solved ? "border-green-500 text-green-600" : ""
               )}
               onClick={handleSolvedToggle}
+              type="button"
             >
               {feedback.Solved ? (
                 <>

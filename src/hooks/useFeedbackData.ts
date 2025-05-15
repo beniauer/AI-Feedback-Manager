@@ -36,10 +36,10 @@ export function useFeedbackData() {
   return useQuery({
     queryKey: ['feedback'],
     queryFn: async (): Promise<FeedbackItem[]> => {
+      console.log('Fetching feedback data');
       const { data, error } = await supabase
         .from('SFS Jun PM Feedback')
-        .select('*')
-        // Removed the ordering by Creation_Date as that column doesn't exist
+        .select('*');
         
       if (error) {
         console.error('Error fetching feedback data:', error);
@@ -68,7 +68,8 @@ export function useFeedbackData() {
       // Sort by UUID_Number (descending) to show the newest items first
       return mappedData.sort((a, b) => b.UUID_Number - a.UUID_Number);
     },
-    refetchOnWindowFocus: false
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: true
   });
 }
 
